@@ -8,9 +8,10 @@ import sqlite3 as sl
 import pycountry_convert as pc
 
 from io import BytesIO
-from datetime import date
 from collections import namedtuple
 from ratelimiter import RateLimiter
+
+from models import Base, Journal
 
 Manuscript = namedtuple(
     "Manuscript",
@@ -25,8 +26,19 @@ Journal = namedtuple(
 LOGGER = logging.getLogger("systematic")
 
 
-class SQLAlchemy:
-    pass
+class SqlAlchemyORM:
+    def __init__(self):
+        self._db_name = f"documents.db"
+        self._engine = create_engine(f'sqlite:///{self._db_name}')
+        self._Session = sessionmaker(bind=self._engine)
+        self.__create_database()
+
+    def get_session(self):
+        return self._Session()
+
+    def __create_database(self):
+        if not os.path.exists(self._db_name):
+            Base.metadata.create_all(self._engine)
 
 
 class Persistence:
@@ -381,3 +393,15 @@ class Editorial:
             return final_url
         except pycurl.error:
             raise
+
+
+if __name__ == "__main__":
+    # Crear una instancia de SqlAlchemyORM
+    db = SqlAlchemyORM()
+
+    # Obtener una sesión de SQLAlchemy
+    session = db.get_session()
+
+    # new_publisher = Publisher(id_document=1, publisher="Nuevo editor")
+    # session.add(new_publisher)
+    # session.commit()
