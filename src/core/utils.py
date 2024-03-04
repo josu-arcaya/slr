@@ -25,6 +25,10 @@ Journal = namedtuple(
 LOGGER = logging.getLogger("systematic")
 
 
+class SQLAlchemy:
+    pass
+
+
 class Persistence:
     def __init__(self, database="test"):
         self._database = database
@@ -51,9 +55,9 @@ class Postgres(Persistence):
         Persistence.__init__(self, database)
 
         if (
-            os.getenv("DB_USER") is None
-            or os.getenv("DB_HOST") is None
-            or os.getenv("DB_PASS") is None
+                os.getenv("DB_USER") is None
+                or os.getenv("DB_HOST") is None
+                or os.getenv("DB_PASS") is None
         ):
             logging.error(
                 "Please define DB_USER, DB_HOST and DB_PASS environment variables."
@@ -161,14 +165,14 @@ class Sqlite(Persistence):
                 return j
 
     def set_impact_by_issn(
-        self,
-        issn: str,
-        citeScoreCurrentMetric: float,
-        citeScoreCurrentMetricYear: int,
-        citeScoreTracker: float,
-        citeScoreTrackerYear: int,
-        sjrMetric: float,
-        sjrYear: int,
+            self,
+            issn: str,
+            citeScoreCurrentMetric: float,
+            citeScoreCurrentMetricYear: int,
+            citeScoreTracker: float,
+            citeScoreTrackerYear: int,
+            sjrMetric: float,
+            sjrYear: int,
     ):
         with self._con:
             data = (
