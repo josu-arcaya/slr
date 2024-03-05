@@ -11,7 +11,10 @@ from io import BytesIO
 from collections import namedtuple
 from ratelimiter import RateLimiter
 
-from models import Base, Journal
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy.orm import sessionmaker
+from models import Base, Publisher, IssnPublisher, EissnPublisher, IssnImpact, Document, DoiEurl, Continent, \
+    AggregatedPublisher, Manuscript, Journal
 
 Manuscript = namedtuple(
     "Manuscript",
@@ -39,6 +42,13 @@ class SqlAlchemyORM:
     def __create_database(self):
         if not os.path.exists(self._db_name):
             Base.metadata.create_all(self._engine)
+            LOGGER.info("Database created successfully")
+        else:
+            LOGGER.info("Database already created")
+
+    @property
+    def engine(self):
+        return self._engine
 
 
 class Persistence:
@@ -395,9 +405,11 @@ class Editorial:
             raise
 
 
+# Prueba de funcionamiento del ORM SQLAlchemy
 if __name__ == "__main__":
     # Crear una instancia de SqlAlchemyORM
     db = SqlAlchemyORM()
+    print(db.engine)
 
     # Obtener una sesión de SQLAlchemy
     session = db.get_session()
@@ -405,3 +417,11 @@ if __name__ == "__main__":
     # new_publisher = Publisher(id_document=1, publisher="Nuevo editor")
     # session.add(new_publisher)
     # session.commit()
+    print("Tablas en la base de datos:")
+    metadata = MetaData()
+    metadata.reflect(bind=db.engine)
+    print(metadata.tables.keys())
+
+    session.close()
+    if not session.is_active:
+        print("Sesión cerrada")
