@@ -14,6 +14,7 @@ from datetime import datetime
 
 from sqlalchemy import create_engine, MetaData, select
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.exc import IntegrityError
 from models import Base, Publisher, IssnPublisher, EissnPublisher, IssnImpact, Document, DoiEurl, Continent, \
     AggregatedPublisher, Manuscript, Journal
 
@@ -55,7 +56,15 @@ class SqlAlchemyORM:
         with self.get_session() as sess:
             result = sess.execute(select(IssnImpact).filter_by(issn=issn)).first()
             if result:
-                return vars(result[0])
+                return IssnImpact(
+                    issn=result[0].issn,
+                    citeScoreCurrentMetric=result[0].citeScoreCurrentMetric,
+                    citeScoreCurrentMetricYear=result[0].citeScoreCurrentMetricYear,
+                    citeScoreTracker=result[0].citeScoreTracker,
+                    citeScoreTrackerYear=result[0].citeScoreTrackerYear,
+                    sjrMetric=result[0].sjrMetric,
+                    sjrYear=result[0].sjrYear,
+                )
 
     def set_impact_by_issn(
             self,
@@ -84,7 +93,7 @@ class SqlAlchemyORM:
         with self.get_session() as sess:
             result = sess.execute(select(IssnPublisher).filter_by(issn=issn)).first()
             if result:
-                return vars(result[0])
+                return IssnPublisher(issn=result[0].issn, publisher=result[0].publisher)
 
     def set_publisher_by_issn(self, issn: str, publisher: str):
         with self.get_session() as sess:
@@ -96,7 +105,7 @@ class SqlAlchemyORM:
         with self.get_session() as sess:
             result = sess.execute(select(EissnPublisher).filter_by(eissn=eissn)).first()
             if result:
-                return vars(result[0])
+                return EissnPublisher(eissn=result[0].eissn, publisher=result[0].publisher)
 
     def set_publisher_by_eissn(self, eissn: str, publisher: str):
         with self.get_session() as sess:
@@ -104,30 +113,122 @@ class SqlAlchemyORM:
             sess.add(eissn_publisher)
             sess.commit()
 
-    def save(self, docs):
+    def save(self, documents):
         with self.get_session() as sess:
-            for doc in docs:
-                document = Document(
-                    title=doc[0],
-                    abstract=doc[1],
-                    keywords=doc[2],
-                    author=doc[3],
-                    published_date=datetime.strptime(doc[4], "%Y-%m-%d"),
-                    doi=doc[5],
-                    eid=doc[6],
-                    publication_name=doc[7],
-                    issn=doc[8],
-                    eissn=doc[9],
-                    type=doc[10],
-                    sub_type=doc[11],
-                    search_query=doc[12],
-                    source=doc[13],
-                    affiliation_country=doc[14],
-                    citedby_count=doc[15],
-                )
-                sess.add(document)
+            try:
+                for doc in documents:
+                    document = Document(
+                        title=doc[0],
+                        abstract=doc[1],
+                        keywords=doc[2],
+                        author=doc[3],
+                        published_date=datetime.strptime(doc[4], "%Y-%m-%d"),
+                        doi=doc[5],
+                        eid=doc[6],
+                        publication_name=doc[7],
+                        issn=doc[8],
+                        eissn=doc[9],
+                        type=doc[10],
+                        sub_type=doc[11],
+                        search_query=doc[12],
+                        source=doc[13],
+                        affiliation_country=doc[14],
+                        citedby_count=doc[15],
+                    )
+                    sess.add(document)
+                sess.commit()
+                LOGGER.info("Document inserted successfully")
+            except IntegrityError as error:
+                LOGGER.error(f"Failed to insert document, {error}.")
+                exit(-1)
+
+    def get_all_issn_without_publisher(self):
+        with self.get_session() as sess:
+            result = (
+                sess.query(Document.eid, Document.issn, Document.eissn)
+                .outerjoin(IssnPublisher, Document.issn.__eq__(IssnPublisher.issn))
+                .filter(IssnPublisher.publisher.is_(None), Document.issn.isnot(None))
+            )
+            return [Document(
+                eid=row[0],
+                issn=row[1],
+                eissn=row[2]
+            ) for row in result]
+
+    def get_all_eissn_without_publisher(self):
+        with self.get_session() as sess:
+            result = (
+                sess.query(Document.eid, Document.issn, Document.eissn)
+                .outerjoin(EissnPublisher, Document.eissn.__eq__(EissnPublisher.eissn))
+                .filter(EissnPublisher.publisher.is_(None), Document.eissn.isnot(None))
+            )
+            return [Document(
+                eid=row[0],
+                issn=row[1],
+                eissn=row[2]
+            ) for row in result]
+
+    def get_empty_publisher(self):
+        with self.get_session() as sess:
+            result = (
+                sess.query(Document.id_document, Document.eid, Document.issn, Document.eissn)
+                .outerjoin(IssnPublisher, Document.issn.__eq__(IssnPublisher.issn))
+                .filter(IssnPublisher.publisher.is_(None))
+            )
+            return [Document(
+                id_document=row[0],
+                eid=row[1],
+                issn=row[2],
+                eissn=row[3]
+            ) for row in result]
+
+    def set_publisher(self, publishers):
+        with self.get_session() as sess:
+            try:
+                for publisher in publishers:
+                    issn_publisher = IssnPublisher(issn=publisher[0], publisher=publisher[1])
+                    sess.add(issn_publisher)
+                sess.commit()
+                LOGGER.info("Publisher inserted successfully")
+            except IntegrityError as error:
+                LOGGER.error(f"Failed to insert publisher, {error}.")
+                exit(-1)
+
+    def get_empty_continents(self):
+        with self.get_session() as sess:
+            result = (
+                sess.query(Document.affiliation_country.distinct())
+                .outerjoin(Continent, Document.affiliation_country.__eq__(Continent.affiliation_country))
+                .filter(Continent.continent.is_(None), Document.affiliation_country.isnot(None))
+            )
+            return [Document(affiliation_country=row[0]) for row in result]
+
+    def set_continent(self, tuples):
+        with self.get_session() as sess:
+            try:
+                for tpl in tuples:
+                    continent = Continent(affiliation_country=tpl[0], continent=tpl[1])
+                    sess.add(continent)
+                sess.commit()
+                LOGGER.info("Continent inserted successfully")
+            except IntegrityError as error:
+                LOGGER.error(f"Failed to insert continent, {error}.")
+                exit(-1)
+
+    def get_doi(self):
+        with self.get_session() as sess:
+            result = (
+                sess.query(Document.doi)
+                .outerjoin(DoiEurl, Document.doi.__eq__(DoiEurl.doi))
+                .filter(Document.doi.isnot(None), DoiEurl.eurl.is_(None))
+            )
+            return [Document(doi=row[0]) for row in result]
+
+    def set_doi_eurl(self, doi: str, eurl: str):
+        with self.get_session() as sess:
+            doi_eurl = DoiEurl(doi=doi, eurl=eurl)
+            sess.add(doi_eurl)
             sess.commit()
-            LOGGER.info("Document inserted successfully")
 
 
 class Persistence:
@@ -526,11 +627,42 @@ if __name__ == "__main__":
 
     # Función save
     documents = [(
-                 "title", "abstract", "keywords", "author", "2022-01-01", "doi", "eid", "publication_name", "1234-5678",
-                 "5678-1234", "type", "sub_type", "search_query", "source", "affiliation_country", 0)]
+        "title", "abstract", "keywords", "author", "2022-01-01", "doi", "eid", "publication_name", "1234-5678",
+        "5678-1234", "type", "sub_type", "search_query", "source", "affiliation_country", 0)]
     db.save(documents)
     print("Documents saved successfully")
 
+    # Prueba de la función get_all_issn_without_publisher
+    result = db.get_all_issn_without_publisher()
+    print(
+        f"Resultado de get_all_issn_without_publisher: {result}")
+
+    # Prueba de la función get_all_eissn_without_publisher
+    result = db.get_all_eissn_without_publisher()
+    print(
+        f"Resultado de get_all_eissn_without_publisher: {result}")
+
+    # Prueba de la función get_empty_publisher
+    result = db.get_empty_publisher()
+    print(f"Resultado de get_empty_publisher: {result}")
+
+    # Prueba de la función set_publisher
+    publishers = [(1, 'publisher1'), (2, 'publisher2')]
+    db.set_publisher(publishers)
+
+    # Prueba de la función set_continent
+    tuples = [('Spain', 'Europe'), ('Japan', 'Asia')]
+    db.set_continent(tuples)
+
+    # Prueba de la función get_empty_continents
+    result = db.get_empty_continents()
+    print(f"Resultado de get_empty_continents: {result}")
+
+    # Prueba de la función set_doi_eurl
+    db.set_doi_eurl("10.1000/xyz123", "http://example.com")
+
+    # Prueba de la función get_doi
+    result = db.get_doi()
+    print(f"Resultado de get_doi: {result}")
+
     session.close()
-    if not session.is_active:
-        print("Sesión cerrada")
