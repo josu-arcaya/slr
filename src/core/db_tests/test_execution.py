@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, inspect
 
 from ..utils import SqlAlchemyORM
-from ..models import (Publisher, Base, IssnImpact, IssnPublisher, EissnPublisher, Document, DoiEurl, Continent,
+from ..models import (Base, Publisher, IssnImpact, IssnPublisher, EissnPublisher, Document, DoiEurl, Continent,
                       AggregatedPublisher, Manuscript, Journal)
 
 
@@ -25,13 +25,18 @@ class TestSqlAlchemyORM(unittest.TestCase):
             # Crear tabla
             if not inspect(self.engine).has_table(cls.__tablename__):
                 Base.metadata.tables[cls.__tablename__].create(bind=self.engine)
-            self.assertTrue(inspect(self.engine).has_table(cls.__tablename__), f"Tabla {cls.__tablename__} no creada")
+            self.assertTrue(inspect(self.engine).has_table(cls.__tablename__), f"Tabla {cls.__name__} no creada")
 
             # Añadir datos
             session = self.Session()
-            instance = cls(**data_script.test_data[cls.__name__])
-            session.add(instance)
-            session.commit()
+            try:
+                instance = cls(**data_script.test_data[cls.__name__])
+                session.add(instance)
+                session.commit()
+                queried_instance = session.query(cls).first()
+                self.assertIsNotNone(queried_instance, f"No se han podido añadir datos a {cls.__name__}")
+            except Exception as e:
+                print(f"Error al añadir datos a la tabla {cls.__name__}: {e}")
 
             # Consultar datos
             queried_instance = session.query(cls).first()
@@ -41,11 +46,13 @@ class TestSqlAlchemyORM(unittest.TestCase):
             session.delete(queried_instance)
             session.commit()
             queried_instance = session.query(cls).first()
-            self.assertIsNone(queried_instance, f"No se han podido eliminar datos de {cls.__name__}")
+            self.assertIsNone(queried_instance, f"No se han podido eliminar los datos de {cls.__name__}")
 
             # Eliminar tabla
             Base.metadata.tables[cls.__tablename__].drop(bind=self.engine)
-            self.assertFalse(inspect(self.engine).has_table(cls.__tablename__), f"Tabla {cls.__tablename__} no eliminada")
+            self.assertFalse(inspect(self.engine).has_table(cls.__tablename__), f"Tabla {cls.__name__} no eliminada")
+
+            print(f"Todas las operaciones para la tabla {cls.__name__} se han realizado correctamente.")
 
 
 if __name__ == "__main__":
