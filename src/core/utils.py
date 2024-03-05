@@ -10,9 +10,10 @@ import pycountry_convert as pc
 from io import BytesIO
 from collections import namedtuple
 from ratelimiter import RateLimiter
+from datetime import datetime
 
-from sqlalchemy import create_engine, MetaData
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, MetaData, select
+from sqlalchemy.orm import sessionmaker, Session
 from models import Base, Publisher, IssnPublisher, EissnPublisher, IssnImpact, Document, DoiEurl, Continent, \
     AggregatedPublisher, Manuscript, Journal
 
@@ -49,6 +50,84 @@ class SqlAlchemyORM:
     @property
     def engine(self):
         return self._engine
+
+    def get_impact_by_issn(self, issn: str):
+        with self.get_session() as sess:
+            result = sess.execute(select(IssnImpact).filter_by(issn=issn)).first()
+            if result:
+                return result
+
+    def set_impact_by_issn(
+            self,
+            issn: str,
+            citeScoreCurrentMetric: float,
+            citeScoreCurrentMetricYear: int,
+            citeScoreTracker: float,
+            citeScoreTrackerYear: int,
+            sjrMetric: float,
+            sjrYear: int,
+    ):
+        with self.get_session() as sess:
+            issn_impact = IssnImpact(
+                issn=issn,
+                citeScoreCurrentMetric=citeScoreCurrentMetric,
+                citeScoreCurrentMetricYear=citeScoreCurrentMetricYear,
+                citeScoreTracker=citeScoreTracker,
+                citeScoreTrackerYear=citeScoreTrackerYear,
+                sjrMetric=sjrMetric,
+                sjrYear=sjrYear,
+            )
+            sess.add(issn_impact)
+            sess.commit()
+
+    def get_publisher_by_issn(self, issn: str):
+        with self.get_session() as sess:
+            result = sess.execute(select(IssnPublisher).filter_by(issn=issn)).first()
+            if result:
+                return result
+
+    def set_publisher_by_issn(self, issn: str, publisher: str):
+        with self.get_session() as sess:
+            issn_publisher = IssnPublisher(issn=issn, publisher=publisher)
+            sess.add(issn_publisher)
+            sess.commit()
+
+    def get_publisher_by_eissn(self, eissn: str):
+        with self.get_session() as sess:
+            result = sess.execute(select(EissnPublisher).filter_by(eissn=eissn)).first()
+            if result:
+                return result
+
+    def set_publisher_by_eissn(self, eissn: str, publisher: str):
+        with self.get_session() as sess:
+            eissn_publisher = EissnPublisher(eissn=eissn, publisher=publisher)
+            sess.add(eissn_publisher)
+            sess.commit()
+
+    def save(self, docs):
+        with self.get_session() as sess:
+            for doc in docs:
+                document = Document(
+                    title=doc[0],
+                    abstract=doc[1],
+                    keywords=doc[2],
+                    author=doc[3],
+                    published_date=datetime.strptime(doc[4], "%Y-%m-%d"),
+                    doi=doc[5],
+                    eid=doc[6],
+                    publication_name=doc[7],
+                    issn=doc[8],
+                    eissn=doc[9],
+                    type=doc[10],
+                    sub_type=doc[11],
+                    search_query=doc[12],
+                    source=doc[13],
+                    affiliation_country=doc[14],
+                    citedby_count=doc[15],
+                )
+                sess.add(document)
+            sess.commit()
+            LOGGER.info("Document inserted successfully")
 
 
 class Persistence:
@@ -145,7 +224,7 @@ class Sqlite(Persistence):
 
             with conn:
                 sql = """CREATE TABLE issn_impact (issn TEXT NOT NULL PRIMARY KEY, citeScoreCurrentMetric REAL NOT NULL,
-                    citeScoreCurrentMetricYear INT NOT NULL, citeScoreTracker REAL NOT NULL, citeScoreTrackerYear DATE NOT NULL,
+                    citeScoreCurrentMetricYear INT NOT NULL, citeScoreTracker REAL NOT NULL, citeScoreTrackerYear INT NOT NULL,
                     sjrMetric REAL NOT NULL, sjrYear INT NOT NULL);"""
                 conn.execute(sql)
 
@@ -421,6 +500,36 @@ if __name__ == "__main__":
     metadata = MetaData()
     metadata.reflect(bind=db.engine)
     print(metadata.tables.keys())
+
+    db.set_publisher_by_issn("1234-5678", "Nuevo editor")
+    print("Publisher set successfully")
+
+    # Función get_publisher_by_issn
+    publisher = db.get_publisher_by_issn("1234-5678")
+    print(f"Publisher: {publisher}")
+
+    # Función set_impact_by_issn
+    db.set_impact_by_issn("1234-5678", 1.0, 2022, 1.1, 2023, 1.2, 2022)
+    print("Impact set successfully")
+
+    # Función get_impact_by_issn
+    impact = db.get_impact_by_issn("1234-5678")
+    print(f"Impact: {impact}")
+
+    # Función set_publisher_by_eissn
+    db.set_publisher_by_eissn("5678-1234", "Nuevo editor")
+    print("eISSN Publisher set successfully")
+
+    # Función get_publisher_by_eissn
+    eissn_publisher = db.get_publisher_by_eissn("5678-1234")
+    print(f"eISSN Publisher: {eissn_publisher}")
+
+    # Función save
+    documents = [(
+                 "title", "abstract", "keywords", "author", "2022-01-01", "doi", "eid", "publication_name", "1234-5678",
+                 "5678-1234", "type", "sub_type", "search_query", "source", "affiliation_country", 0)]
+    db.save(documents)
+    print("Documents saved successfully")
 
     session.close()
     if not session.is_active:

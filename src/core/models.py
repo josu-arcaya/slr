@@ -29,7 +29,7 @@ class IssnImpact(Base):
     citeScoreCurrentMetric = Column(Float, nullable=False)
     citeScoreCurrentMetricYear = Column(Integer, nullable=False)
     citeScoreTracker = Column(Float, nullable=False)
-    citeScoreTrackerYear = Column(Date, nullable=False)
+    citeScoreTrackerYear = Column(Integer, nullable=False)
     sjrMetric = Column(Float, nullable=False)
     sjrYear = Column(Integer, nullable=False)
 
