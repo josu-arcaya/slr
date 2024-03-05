@@ -55,7 +55,7 @@ class SqlAlchemyORM:
         with self.get_session() as sess:
             result = sess.execute(select(IssnImpact).filter_by(issn=issn)).first()
             if result:
-                return result
+                return vars(result[0])
 
     def set_impact_by_issn(
             self,
@@ -84,7 +84,7 @@ class SqlAlchemyORM:
         with self.get_session() as sess:
             result = sess.execute(select(IssnPublisher).filter_by(issn=issn)).first()
             if result:
-                return result
+                return vars(result[0])
 
     def set_publisher_by_issn(self, issn: str, publisher: str):
         with self.get_session() as sess:
@@ -96,7 +96,7 @@ class SqlAlchemyORM:
         with self.get_session() as sess:
             result = sess.execute(select(EissnPublisher).filter_by(eissn=eissn)).first()
             if result:
-                return result
+                return vars(result[0])
 
     def set_publisher_by_eissn(self, eissn: str, publisher: str):
         with self.get_session() as sess:
