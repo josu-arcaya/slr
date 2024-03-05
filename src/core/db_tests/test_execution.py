@@ -1,10 +1,11 @@
 import unittest
-from sqlalchemy import create_engine, inspect
-from sqlalchemy.orm import sessionmaker
-from models import (Publisher, Base, IssnImpact, IssnPublisher, EissnPublisher, Document, DoiEurl, Continent,
-                    AggregatedPublisher, Manuscript, Journal)  # Importar ./models después del merge
-from utils import SqlAlchemyORM  # Importar ./utils después del merge
 import data_script
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, inspect
+
+from ./utils import SqlAlchemyORM
+from ./models import (Publisher, Base, IssnImpact, IssnPublisher, EissnPublisher, Document, DoiEurl, Continent,
+                      AggregatedPublisher, Manuscript, Journal)
 
 
 class TestSqlAlchemyORM(unittest.TestCase):
