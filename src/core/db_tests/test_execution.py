@@ -3,8 +3,8 @@ import data_script
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, inspect
 
-from ./utils import SqlAlchemyORM
-from ./models import (Publisher, Base, IssnImpact, IssnPublisher, EissnPublisher, Document, DoiEurl, Continent,
+from ..utils import SqlAlchemyORM
+from ..models import (Publisher, Base, IssnImpact, IssnPublisher, EissnPublisher, Document, DoiEurl, Continent,
                       AggregatedPublisher, Manuscript, Journal)
 
 
