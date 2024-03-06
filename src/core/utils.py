@@ -13,7 +13,7 @@ from ratelimiter import RateLimiter
 from datetime import datetime
 
 from sqlalchemy import create_engine, MetaData, select
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker, Session, aliased
 from sqlalchemy.exc import IntegrityError
 from models import Base, Publisher, IssnPublisher, EissnPublisher, IssnImpact, Document, DoiEurl, Continent, \
     AggregatedPublisher, Manuscript, Journal
@@ -54,16 +54,22 @@ class SqlAlchemyORM:
 
     def get_impact_by_issn(self, issn: str):
         with self.get_session() as sess:
-            result = sess.execute(select(IssnImpact).filter_by(issn=issn)).first()
+            issn_impact_alias = aliased(IssnImpact)
+            result = (
+                sess.query(issn_impact_alias)
+                .filter(issn_impact_alias.issn == issn)
+                .first()
+            )
+
             if result:
                 return IssnImpact(
-                    issn=result[0].issn,
-                    citeScoreCurrentMetric=result[0].citeScoreCurrentMetric,
-                    citeScoreCurrentMetricYear=result[0].citeScoreCurrentMetricYear,
-                    citeScoreTracker=result[0].citeScoreTracker,
-                    citeScoreTrackerYear=result[0].citeScoreTrackerYear,
-                    sjrMetric=result[0].sjrMetric,
-                    sjrYear=result[0].sjrYear,
+                    issn=result.issn,
+                    citeScoreCurrentMetric=result.citeScoreCurrentMetric,
+                    citeScoreCurrentMetricYear=result.citeScoreCurrentMetricYear,
+                    citeScoreTracker=result.citeScoreTracker,
+                    citeScoreTrackerYear=result.citeScoreTrackerYear,
+                    sjrMetric=result.sjrMetric,
+                    sjrYear=result.sjrYear,
                 )
 
     def set_impact_by_issn(
@@ -148,12 +154,9 @@ class SqlAlchemyORM:
                 sess.query(Document.eid, Document.issn, Document.eissn)
                 .outerjoin(IssnPublisher, Document.issn.__eq__(IssnPublisher.issn))
                 .filter(IssnPublisher.publisher.is_(None), Document.issn.isnot(None))
+                .all()
             )
-            return [Document(
-                eid=row[0],
-                issn=row[1],
-                eissn=row[2]
-            ) for row in result]
+            return [(row[0], row[1], row[2]) for row in result]
 
     def get_all_eissn_without_publisher(self):
         with self.get_session() as sess:
@@ -161,12 +164,9 @@ class SqlAlchemyORM:
                 sess.query(Document.eid, Document.issn, Document.eissn)
                 .outerjoin(EissnPublisher, Document.eissn.__eq__(EissnPublisher.eissn))
                 .filter(EissnPublisher.publisher.is_(None), Document.eissn.isnot(None))
+                .all()
             )
-            return [Document(
-                eid=row[0],
-                issn=row[1],
-                eissn=row[2]
-            ) for row in result]
+            return [(row[0], row[1], row[2]) for row in result]
 
     def get_empty_publisher(self):
         with self.get_session() as sess:
@@ -174,13 +174,9 @@ class SqlAlchemyORM:
                 sess.query(Document.id_document, Document.eid, Document.issn, Document.eissn)
                 .outerjoin(IssnPublisher, Document.issn.__eq__(IssnPublisher.issn))
                 .filter(IssnPublisher.publisher.is_(None))
+                .all()
             )
-            return [Document(
-                id_document=row[0],
-                eid=row[1],
-                issn=row[2],
-                eissn=row[3]
-            ) for row in result]
+            return [(row[0], row[1], row[2]) for row in result]
 
     def set_publisher(self, publishers):
         with self.get_session() as sess:
@@ -200,8 +196,9 @@ class SqlAlchemyORM:
                 sess.query(Document.affiliation_country.distinct())
                 .outerjoin(Continent, Document.affiliation_country.__eq__(Continent.affiliation_country))
                 .filter(Continent.continent.is_(None), Document.affiliation_country.isnot(None))
+                .all()
             )
-            return [Document(affiliation_country=row[0]) for row in result]
+            return [(row[0]) for row in result]
 
     def set_continent(self, tuples):
         with self.get_session() as sess:
@@ -221,14 +218,34 @@ class SqlAlchemyORM:
                 sess.query(Document.doi)
                 .outerjoin(DoiEurl, Document.doi.__eq__(DoiEurl.doi))
                 .filter(Document.doi.isnot(None), DoiEurl.eurl.is_(None))
+                .all()
             )
-            return [Document(doi=row[0]) for row in result]
+            return [(row[0]) for row in result]
 
     def set_doi_eurl(self, doi: str, eurl: str):
         with self.get_session() as sess:
             doi_eurl = DoiEurl(doi=doi, eurl=eurl)
             sess.add(doi_eurl)
             sess.commit()
+
+    def get_empty_openaccess(self):
+        with self.get_session() as sess:
+            subquery = (
+                sess.query(StudySelection.id_document)
+                .filter(StudySelection.status == 3)
+                .subquery()
+            )
+
+            documents_alias = aliased(Document)
+
+            result = (
+                sess.query(documents_alias.eid)
+                .join(subquery, documents_alias.id_document.__eq__(subquery.c.id_document))
+                .filter(documents_alias.openaccess.is_(None))
+                .all()
+            )
+
+            return [(row[0]) for row in result]
 
 
 class Persistence:
