@@ -7,6 +7,8 @@ class TestSqlAlchemyORM(unittest.TestCase):
 
     def setUp(self):
         self.orm = SqlAlchemyORM()
+        self.orm._engine = Mock()
+        self.orm._Session = Mock()
 
     def test_init(self):
         self.assertTrue(os.path.exists(self.orm._db_name), "Error en __init__: La base de datos no se ha creado")
