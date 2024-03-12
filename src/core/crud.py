@@ -36,15 +36,17 @@ class SqlAlchemyORM:
             )
 
             if result:
-                return IssnImpact(
-                    issn=result.issn,
-                    citeScoreCurrentMetric=result.citeScoreCurrentMetric,
-                    citeScoreCurrentMetricYear=result.citeScoreCurrentMetricYear,
-                    citeScoreTracker=result.citeScoreTracker,
-                    citeScoreTrackerYear=result.citeScoreTrackerYear,
-                    sjrMetric=result.sjrMetric,
-                    sjrYear=result.sjrYear,
-                )
+                return {
+                    'issn': result.issn,
+                    'citeScoreCurrentMetric': result.citeScoreCurrentMetric,
+                    'citeScoreCurrentMetricYear': result.citeScoreCurrentMetricYear,
+                    'citeScoreTracker': result.citeScoreTracker,
+                    'citeScoreTrackerYear': result.citeScoreTrackerYear,
+                    'sjrMetric': result.sjrMetric,
+                    'sjrYear': result.sjrYear,
+                }
+            else:
+                return None
 
     def set_impact_by_issn(
             # Establece el impacto por ISSN
@@ -75,7 +77,9 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             result = sess.execute(select(IssnPublisher).filter_by(issn=issn)).first()
             if result:
-                return IssnPublisher(issn=result[0].issn, publisher=result[0].publisher)
+                return {'issn': result[0].issn, 'publisher': result[0].publisher}
+            else:
+                return None
 
     def set_publisher_by_issn(self, issn: str, publisher: str):
         # Establece el editor (publisher) por ISSN
@@ -89,7 +93,9 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             result = sess.execute(select(EissnPublisher).filter_by(eissn=eissn)).first()
             if result:
-                return EissnPublisher(eissn=result[0].eissn, publisher=result[0].publisher)
+                return {'eissn': result[0].eissn, 'publisher': result[0].publisher}
+            else:
+                return None
 
     def set_publisher_by_eissn(self, eissn: str, publisher: str):
         # Establece el editor (publisher) por EISSN
