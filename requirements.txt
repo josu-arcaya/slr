@@ -1,7 +1,6 @@
 argparse
 datetime
 geopandas
-logging
 networkx
 pip-chill
 psycopg2
