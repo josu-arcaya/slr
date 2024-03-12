@@ -22,8 +22,8 @@ LOGGER = logging.getLogger("systematic")
 
 
 class SqlAlchemyORM:
-    def __init__(self):
-        self.db = Database()
+    def __init__(self, db_name="documents.db"):
+        self.db = Database(db_name)
 
     def get_impact_by_issn(self, issn: str):
         # Obtiene el impacto por ISSN
