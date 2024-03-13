@@ -4,7 +4,7 @@ from collections import namedtuple
 from models import Base, Publisher, IssnPublisher, EissnPublisher, IssnImpact, Document, DoiEurl, Continent, \
     AggregatedPublisher, Manuscript, Journal
 from database import Database
-from sqlalchemy import create_engine, MetaData, select
+from sqlalchemy import create_engine, MetaData, select, update
 from sqlalchemy.orm import sessionmaker, Session, aliased
 from sqlalchemy.exc import IntegrityError
 
@@ -232,6 +232,26 @@ class SqlAlchemyORM:
             )
 
             return [(row[0]) for row in result]
+
+    # Actualmente no funcinará la siguiente función porque no existe el campo openaccess en el documento.
+    def set_openaccess(self, eid: str, openaccess: str):
+        # Esta función actualiza el campo 'openaccess' de un documento en la base de datos.
+        with self.db.get_session() as sess:
+            try:
+                # Crear la sentencia de actualización
+                stmt = (
+                    update(Document)
+                    .where(Document.eid == eid)
+                    .values(openaccess=openaccess)
+                )
+
+                # Ejecutar la sentencia de actualización
+                sess.execute(stmt)
+
+                LOGGER.info("Field openaccess updated successfully")
+            except Exception as error:
+                LOGGER.error(f"Failed to update openaccess, {error}.")
+                exit(-1)
 
 
 # Prueba de funcionamiento del ORM SQLAlchemy
