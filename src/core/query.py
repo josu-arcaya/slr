@@ -2,14 +2,12 @@ import abc
 import json
 import logging
 import os
-import urllib
-import urllib.request
+import urllib, urllib.request
 import time
 
 from src.core.utils import Manuscript, Persistence
 
 LOGGER = logging.getLogger('systematic')
-
 
 class Query:
 

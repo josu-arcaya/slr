@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import patch, Mock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import CompileError
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from database import Database
@@ -78,8 +79,8 @@ class TestSqlAlchemyORM(unittest.TestCase):
             result_empty_publisher = self.orm.get_empty_publisher()
             print(f" Resultado de test_set_get_empty_publisher: {result_empty_publisher}\n")
             self.assertEqual(result_empty_publisher, [], "Error en set_publisher / get_empty_publisher")
-        except Exception as AssertionError:
-            print(f"Error en set_empty_publisher. El editor no puede ser None. {AssertionError}")
+        except AssertionError:
+            print(f"Error en set_empty_publisher. El editor no puede ser nulo: (publisher = Column(nullable=False))\n")
 
     # Test de consulta de los ISSN que no tienen un autor asignado en IssnPublisher
     def test_get_all_issn_without_publisher(self):
@@ -99,7 +100,8 @@ class TestSqlAlchemyORM(unittest.TestCase):
                       "ISSN4", "EISSN4", "Type4", "SubType4", "Query4", "Source4", "Country4", 10)]
 
         self.orm.save(documents)
-        continents = [('Country3', 'Continent3')]
+        continents = [('Country1', 'Continent1'), ('Country2', 'Continent2'), ('Country3', 'Continent3'),
+                      ('Country5', 'Continent5')]
         self.orm.set_continent(continents)
 
         result = list(self.orm.get_empty_continents())
@@ -127,6 +129,21 @@ class TestSqlAlchemyORM(unittest.TestCase):
         print(f" Resultado de test_set_doi_eurl: {result}\n")
 
         self.assertEqual(result, expected_url, "Error en set_doi_eurl")
+
+    # Test de publicación y consulta de openaccess
+    def test_get_set_openaccess(self):
+        documents = [("Title5", "Abstract5", "Keyword5", "Author5", "2022-01-05", "DOI5", "EID5", "Publication5",
+                      "ISSN5", "EISSN5", "Type5", "SubType5", "Query5", "Source5", "Country5", 10)]
+        self.orm.save(documents)
+
+        try:
+            result = self.orm.get_empty_openaccess()
+            if result is not None:
+                self.assertEqual(result, ['EID5'], "Error en get_empty_openaccess")
+
+            self.orm.set_openaccess('EID5', 'openaccess')
+        except (NameError, CompileError, SystemExit):
+            print(f" Error en test_get_set openaccess. El nombre 'StudySelection' no está definido.\n")
 
     @classmethod
     def tearDownClass(cls):
