@@ -131,7 +131,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
         self.assertEqual(result, expected_url, "Error en set_doi_eurl")
 
     # Test de publicación y consulta de openaccess
-    def test_get_set_openaccess(self):
+    def test_set_get_openaccess(self):
         documents = [("Title5", "Abstract5", "Keyword5", "Author5", "2022-01-05", "DOI5", "EID5", "Publication5",
                       "ISSN5", "EISSN5", "Type5", "SubType5", "Query5", "Source5", "Country5", 10)]
         self.orm.save(documents)
@@ -143,7 +143,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
 
             self.orm.set_openaccess('EID5', 'openaccess')
         except (NameError, CompileError, SystemExit):
-            print(f" Error en test_get_set openaccess. El nombre 'StudySelection' no está definido.\n")
+            print(f" Error en test_set_get openaccess. El nombre 'StudySelection' no está definido.\n")
 
     @classmethod
     def tearDownClass(cls):
