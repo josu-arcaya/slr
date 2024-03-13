@@ -106,7 +106,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
         print(f" Resultado de test_get_empty_continents: {result}\n")
         self.assertEqual(result, ['Country4'], "Error en get_empty_continents")
 
-    #
+    # Test de publicación de DoiEurl
     def test_set_doi_eurl(self):
         expected_url = 'http://example.com'
         doi = '10.1000/xyz123'
