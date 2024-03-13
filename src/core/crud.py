@@ -8,16 +8,6 @@ from sqlalchemy import create_engine, MetaData, select
 from sqlalchemy.orm import sessionmaker, Session, aliased
 from sqlalchemy.exc import IntegrityError
 
-Manuscript = namedtuple(
-    "Manuscript",
-    "title abstract keywords author published_date doi eid publication_name issn eissn type sub_type search_query source, affiliation_country, citedby_count",
-)
-
-Journal = namedtuple(
-    "Journal",
-    "issn citeScoreCurrentMetric citeScoreCurrentMetricYear citeScoreTracker citeScoreTrackerYear sjrMetric sjrYear",
-)
-
 LOGGER = logging.getLogger("systematic")
 
 
