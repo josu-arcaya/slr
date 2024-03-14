@@ -8,15 +8,9 @@ import sqlite3 as sl
 import pycountry_convert as pc
 
 from io import BytesIO
+from datetime import date
 from collections import namedtuple
 from ratelimiter import RateLimiter
-from datetime import datetime
-
-from sqlalchemy import create_engine, MetaData, select
-from sqlalchemy.orm import sessionmaker, Session, aliased
-from sqlalchemy.exc import IntegrityError
-from models import Base, Publisher, IssnPublisher, EissnPublisher, IssnImpact, Document, DoiEurl, Continent, \
-    AggregatedPublisher, Manuscript, Journal
 
 Manuscript = namedtuple(
     "Manuscript",
@@ -57,9 +51,9 @@ class Postgres(Persistence):
         Persistence.__init__(self, database)
 
         if (
-                os.getenv("DB_USER") is None
-                or os.getenv("DB_HOST") is None
-                or os.getenv("DB_PASS") is None
+            os.getenv("DB_USER") is None
+            or os.getenv("DB_HOST") is None
+            or os.getenv("DB_PASS") is None
         ):
             logging.error(
                 "Please define DB_USER, DB_HOST and DB_PASS environment variables."
@@ -125,7 +119,7 @@ class Sqlite(Persistence):
 
             with conn:
                 sql = """CREATE TABLE issn_impact (issn TEXT NOT NULL PRIMARY KEY, citeScoreCurrentMetric REAL NOT NULL,
-                    citeScoreCurrentMetricYear INT NOT NULL, citeScoreTracker REAL NOT NULL, citeScoreTrackerYear INT NOT NULL,
+                    citeScoreCurrentMetricYear INT NOT NULL, citeScoreTracker REAL NOT NULL, citeScoreTrackerYear DATE NOT NULL,
                     sjrMetric REAL NOT NULL, sjrYear INT NOT NULL);"""
                 conn.execute(sql)
 
@@ -167,14 +161,14 @@ class Sqlite(Persistence):
                 return j
 
     def set_impact_by_issn(
-            self,
-            issn: str,
-            citeScoreCurrentMetric: float,
-            citeScoreCurrentMetricYear: int,
-            citeScoreTracker: float,
-            citeScoreTrackerYear: int,
-            sjrMetric: float,
-            sjrYear: int,
+        self,
+        issn: str,
+        citeScoreCurrentMetric: float,
+        citeScoreCurrentMetricYear: int,
+        citeScoreTracker: float,
+        citeScoreTrackerYear: int,
+        sjrMetric: float,
+        sjrYear: int,
     ):
         with self._con:
             data = (
