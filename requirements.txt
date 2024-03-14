@@ -2,6 +2,7 @@ argparse
 datetime
 geopandas
 networkx
+nose2
 pip-chill
 psycopg2
 pycountry-convert
@@ -10,3 +11,4 @@ pywaffle
 ratelimiter
 requests
 sqlalchemy
+

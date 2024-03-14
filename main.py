@@ -5,9 +5,9 @@ import itertools
 import logging
 import os
 
-from src.core.scopus import Scopus
-from src.core.utils import Persistence, Sqlite, Location, Editorial
-from src.core.plotter import Plotter
+from slr.src.core import Scopus
+from slr.src.core import Persistence, Sqlite, Location, Editorial
+from slr.src.core import Plotter
 
 LOGGER = logging.getLogger("systematic")
 
