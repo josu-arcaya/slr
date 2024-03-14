@@ -29,16 +29,6 @@ class TestSqlAlchemyORM(unittest.TestCase):
         session = self.orm.db.get_session()
         self.assertIsNotNone(session, "Error en get_session: La sesión no se obtuvo correctamente")
 
-    # Test de publicación de IssnImpact y consulta de métricas a través de ISSN
-    def test_set_get_impact_by_issn(self):
-        with patch('utils.create_engine') as mock_create_engine:
-            mock_create_engine.return_value = Mock()
-            self.orm.set_impact_by_issn('1234-5678', 1.0, 2022, 2.0, 2023, 3.0, 2024)
-
-        result = self.orm.get_impact_by_issn('1234-5678')
-        print(f" Resultado de test_set_get_impact_by_issn: {result}\n")
-        self.assertIsNotNone(result, "Error en set_impact_by_issn / get_impact_by_issn")
-
     # Test de publicación de IssnPublisher y consulta del autor a través del ISSN
     def test_set_get_publisher_by_issn(self):
         with patch('utils.create_engine') as mock_create_engine:
@@ -58,6 +48,16 @@ class TestSqlAlchemyORM(unittest.TestCase):
         result = self.orm.get_publisher_by_eissn('8765-4321')
         print(f" Resultado de test_set_get_publisher_by_eissn: {result}\n")
         self.assertIsNotNone(result, "Error en set_publisher_by_eissn / get_publisher_by_eissn")
+
+    # Test de publicación de IssnImpact y consulta de métricas a través de ISSN
+    def test_set_get_impact_by_issn(self):
+        with patch('utils.create_engine') as mock_create_engine:
+            mock_create_engine.return_value = Mock()
+            self.orm.set_impact_by_issn('1234-5678', 1.0, 2022, 2.0, 2023, 3.0, 2024)
+
+        result = self.orm.get_impact_by_issn('1234-5678')
+        print(f" Resultado de test_set_get_impact_by_issn: {result}\n")
+        self.assertIsNotNone(result, "Error en set_impact_by_issn / get_impact_by_issn")
 
     # Test de publicación de un documento y consulta del doi de los documentos existentes
     def test_save_and_get_doi(self):
