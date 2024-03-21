@@ -16,7 +16,7 @@ class SqlAlchemyORM:
         self.db = Database(db_name)
 
     def get_impact_by_issn(self, issn: str):
-        # Obtiene el impacto por ISSN
+        # This function gets the impact by ISSN
         with self.db.get_session() as sess:
             issn_impact_alias = aliased(IssnImpact)
             result = (
@@ -39,7 +39,7 @@ class SqlAlchemyORM:
                 return None
 
     def set_impact_by_issn(
-            # Establece el impacto por ISSN
+            # This function sets the impact by ISSN
             self,
             issn: str,
             citeScoreCurrentMetric: float,
@@ -63,7 +63,7 @@ class SqlAlchemyORM:
             sess.commit()
 
     def get_publisher_by_issn(self, issn: str):
-        # Obtiene el editor (publisher) por ISSN
+        # This function gets the publisher by ISSN
         with self.db.get_session() as sess:
             result = sess.execute(select(IssnPublisher).filter_by(issn=issn)).first()
             if result:
@@ -72,14 +72,14 @@ class SqlAlchemyORM:
                 return None
 
     def set_publisher_by_issn(self, issn: str, publisher: str):
-        # Establece el editor (publisher) por ISSN
+        # This function sets the publisher by ISSN
         with self.db.get_session() as sess:
             issn_publisher = IssnPublisher(issn=issn, publisher=publisher)
             sess.add(issn_publisher)
             sess.commit()
 
     def get_publisher_by_eissn(self, eissn: str):
-        # Obtiene el editor (publisher) por EISSN
+        # This function gets the publisher by EISSN
         with self.db.get_session() as sess:
             result = sess.execute(select(EissnPublisher).filter_by(eissn=eissn)).first()
             if result:
@@ -88,14 +88,14 @@ class SqlAlchemyORM:
                 return None
 
     def set_publisher_by_eissn(self, eissn: str, publisher: str):
-        # Establece el editor (publisher) por EISSN
+        # This function sets the publisher by EISSN
         with self.db.get_session() as sess:
             eissn_publisher = EissnPublisher(eissn=eissn, publisher=publisher)
             sess.add(eissn_publisher)
             sess.commit()
 
     def save(self, documents):
-        # Guarda documentos en la base de datos
+        # This function saves documents in the database
         with self.db.get_session() as sess:
             try:
                 for doc in documents:
@@ -125,7 +125,7 @@ class SqlAlchemyORM:
                 exit(-1)
 
     def get_all_issn_without_publisher(self):
-        # Obtiene los documentos con ISSN pero sin editor
+        # This function gets the documents with ISSN but without editor
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.eid, Document.issn, Document.eissn)
@@ -136,7 +136,7 @@ class SqlAlchemyORM:
             return [(row[0], row[1], row[2]) for row in result]
 
     def get_all_eissn_without_publisher(self):
-        # Obtiene los documentos con EISSN pero sin editor
+        # This function gets the documents with EISSN but without editorr
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.eid, Document.issn, Document.eissn)
@@ -147,7 +147,7 @@ class SqlAlchemyORM:
             return [(row[0], row[1], row[2]) for row in result]
 
     def get_empty_publisher(self):
-        # Obtiene los documentos sin editor
+        # This function gets the documents without a publisher
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.id_document, Document.eid, Document.issn, Document.eissn)
@@ -158,7 +158,7 @@ class SqlAlchemyORM:
             return [(row[0], row[1], row[2]) for row in result]
 
     def set_publisher(self, publishers):
-        # Establece el editor para documentos
+        # This function sets the publisher for documents
         with self.db.get_session() as sess:
             try:
                 for publisher in publishers:
@@ -171,7 +171,7 @@ class SqlAlchemyORM:
                 exit(-1)
 
     def get_empty_continents(self):
-        # Obtiene los países afiliados a documentos que no tienen asignado un continente
+        # Function to retrieve affiliation countries from documents that have no corresponding continent information
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.affiliation_country.distinct())
@@ -182,7 +182,7 @@ class SqlAlchemyORM:
             return [(row[0]) for row in result]
 
     def set_continent(self, tuples):
-        # Establece el continente para países afiliados a documentos
+        # This function sets the continent for affiliated countries
         with self.db.get_session() as sess:
             try:
                 for tpl in tuples:
@@ -195,7 +195,7 @@ class SqlAlchemyORM:
                 exit(-1)
 
     def get_doi(self):
-        # Obtiene los documentos con DOI sin URL de acceso
+        # This function gets documents with DOI without access URL
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.doi)
@@ -206,17 +206,17 @@ class SqlAlchemyORM:
             return [(row[0]) for row in result]
 
     def set_doi_eurl(self, doi: str, eurl: str):
-        # Establece la URL de acceso para documentos con DOI
+        # This function sets the access URL for documents with DOI
         with self.db.get_session() as sess:
             doi_eurl = DoiEurl(doi=doi, eurl=eurl)
             sess.add(doi_eurl)
             sess.commit()
 
     def get_empty_openaccess(self):
-        # Obtiene documentos sin acceso abierto y con status 3 en StudySelection
+        # This function gets documents without open access and with status 3 in StudySelection
         with self.db.get_session() as sess:
             subquery = (
-                # No se define StudySelection, actualmente no existe el modelo.
+                # StudySelection is not defined, the model currently does not exist.
                 sess.query(StudySelection.id_document)
                 .filter(StudySelection.status == 3)
                 .subquery()
@@ -233,19 +233,16 @@ class SqlAlchemyORM:
 
             return [(row[0]) for row in result]
 
-    # Actualmente no funcinará la siguiente función porque no existe el campo openaccess en el documento.
+    # Currently the following function will not work because the openaccess field does not exist in the document.
     def set_openaccess(self, eid: str, openaccess: str):
-        # Esta función actualiza el campo 'openaccess' de un documento en la base de datos.
+        # This function updates the 'openaccess' field of a document in the database.
         with self.db.get_session() as sess:
             try:
-                # Crear la sentencia de actualización
                 stmt = (
                     update(Document)
                     .where(Document.eid == eid)
                     .values(openaccess=openaccess)
                 )
-
-                # Ejecutar la sentencia de actualización
                 sess.execute(stmt)
 
                 LOGGER.info("Field openaccess updated successfully")
