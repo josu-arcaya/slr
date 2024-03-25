@@ -20,7 +20,7 @@ class Database(AbstractDatabase):
         - db_name: (str) Name of the database file. Default is "documents.db".
         """
         self._db_name = db_name
-        self._engine = create_engine(f'sqlite:///{self._db_name}')
+        self._engine = create_engine(f"sqlite:///{self._db_name}")
         self._Session = sessionmaker(bind=self._engine)
         self.create_database()
 

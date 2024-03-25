@@ -70,16 +70,16 @@ class Plotter:
             values=data,
             colors=("#232066", "#983D3D"),
             legend={
-                'loc': 'lower center',
-                'bbox_to_anchor': (0, -0.4),
-                'ncol': len(data),
+                "loc": "lower center",
+                "bbox_to_anchor": (0, -0.4),
+                "ncol": len(data),
             },
             icons="book",
             icon_size=18,
             icon_legend=True,
         )
         plt.savefig("/tmp/fig_type.svg")
-        #plt.show()
+        # plt.show()
 
     def plot_continent(self):
         self.__df.groupby(["continent"]).size().plot.pie(
@@ -106,7 +106,7 @@ class Plotter:
         world.plot(column="publications", legend=True, ax=ax, cax=cax)
         plt.tight_layout()
         plt.savefig("/tmp/fig_geo_continent.svg")
-        #plt.show()
+        # plt.show()
 
     def plot_publisher(self):
         print(self.__df.groupby(["publisher"]).size().head(10))
@@ -137,7 +137,7 @@ class Plotter:
 
         plt.tight_layout()
 
-        #plt.show()
+        # plt.show()
         plt.savefig("/tmp/fig_publisher.pdf")
 
     def plot_keywords(self):

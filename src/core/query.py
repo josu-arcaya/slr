@@ -8,7 +8,8 @@ import urllib.request
 
 from src.core.utils import Manuscript, Persistence
 
-LOGGER = logging.getLogger('systematic')
+LOGGER = logging.getLogger("systematic")
+
 
 class Query:
 

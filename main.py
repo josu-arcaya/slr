@@ -5,8 +5,7 @@ import itertools
 import logging
 import os
 
-from slr.src.core import (Editorial, Location, Persistence, Plotter, Scopus,
-                          Sqlite)
+from slr.src.core import Editorial, Location, Persistence, Plotter, Scopus, Sqlite
 
 LOGGER = logging.getLogger("systematic")
 
@@ -142,7 +141,6 @@ def main():
 
     if args.scopus:
         query_scopus()
-
 
     if args.fill_publisher:
         pass

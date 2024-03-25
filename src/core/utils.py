@@ -9,9 +9,19 @@ from io import BytesIO
 import psycopg2 as ps
 import pycountry_convert as pc
 import pycurl
-from models import (AggregatedPublisher, Base, Continent, Document, DoiEurl,
-                    EissnPublisher, IssnImpact, IssnPublisher, Journal,
-                    Manuscript, Publisher)
+from models import (
+    AggregatedPublisher,
+    Base,
+    Continent,
+    Document,
+    DoiEurl,
+    EissnPublisher,
+    IssnImpact,
+    IssnPublisher,
+    Journal,
+    Manuscript,
+    Publisher,
+)
 from ratelimiter import RateLimiter
 from sqlalchemy import MetaData, create_engine, select
 from sqlalchemy.exc import IntegrityError
@@ -56,9 +66,9 @@ class Postgres(Persistence):
         Persistence.__init__(self, database)
 
         if (
-                os.getenv("DB_USER") is None
-                or os.getenv("DB_HOST") is None
-                or os.getenv("DB_PASS") is None
+            os.getenv("DB_USER") is None
+            or os.getenv("DB_HOST") is None
+            or os.getenv("DB_PASS") is None
         ):
             logging.error(
                 "Please define DB_USER, DB_HOST and DB_PASS environment variables."
@@ -123,15 +133,16 @@ class Sqlite(Persistence):
                 conn.execute(sql)
 
             with conn:
-                sql = """CREATE TABLE issn_impact (issn TEXT NOT NULL PRIMARY KEY, citeScoreCurrentMetric REAL NOT NULL,
-                    citeScoreCurrentMetricYear INT NOT NULL, citeScoreTracker REAL NOT NULL, citeScoreTrackerYear INT NOT NULL,
-                    sjrMetric REAL NOT NULL, sjrYear INT NOT NULL);"""
+                sql = """CREATE TABLE issn_impact (issn TEXT NOT NULL PRIMARY KEY, citeScoreCurrentMetric REAL NOT 
+                NULL, citeScoreCurrentMetricYear INT NOT NULL, citeScoreTracker REAL NOT NULL, citeScoreTrackerYear 
+                INT NOT NULL, sjrMetric REAL NOT NULL, sjrYear INT NOT NULL);"""
                 conn.execute(sql)
 
             with conn:
-                sql = """CREATE TABLE documents (id_document INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,abstract TEXT,
-                    keywords TEXT,author TEXT,published_date DATE,doi TEXT UNIQUE,eid TEXT UNIQUE,publication_name TEXT,
-                    issn TEXT,eissn TEXT,type TEXT,sub_type TEXT,search_query TEXT,source TEXT, affiliation_country TEXT, citedby_count INT);"""
+                sql = """CREATE TABLE documents (id_document INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,abstract 
+                TEXT, keywords TEXT,author TEXT,published_date DATE,doi TEXT UNIQUE,eid TEXT UNIQUE,publication_name 
+                TEXT, issn TEXT,eissn TEXT,type TEXT,sub_type TEXT,search_query TEXT,source TEXT, affiliation_country 
+                TEXT, citedby_count INT);"""
                 conn.execute(sql)
 
             with conn:
@@ -139,18 +150,21 @@ class Sqlite(Persistence):
                 conn.execute(sql)
 
             with conn:
-                sql = """CREATE TABLE IF NOT EXISTS continents (affiliation_country TEXT PRIMARY KEY, continent TEXT NOT NULL);"""
+                sql = """CREATE TABLE IF NOT EXISTS continents (affiliation_country TEXT PRIMARY KEY, continent TEXT 
+                NOT NULL);"""
                 conn.execute(sql)
 
         conn = sl.connect(self._db_name)
         with conn:
-            sql = """CREATE TABLE IF NOT EXISTS aggregated_publisher (publisher TEXT NOT NULL, aggregated_publisher TEXT NOT NULL);"""
+            sql = """CREATE TABLE IF NOT EXISTS aggregated_publisher (publisher TEXT NOT NULL, aggregated_publisher 
+            TEXT NOT NULL);"""
             conn.execute(sql)
 
     def get_impact_by_issn(self, issn: str):
         with self._con:
             data = self._con.execute(
-                "SELECT citeScoreCurrentMetric, citeScoreCurrentMetricYear, citeScoreTracker, citeScoreTrackerYear, sjrMetric, sjrYear FROM issn_impact WHERE issn=?",
+                "SELECT citeScoreCurrentMetric, citeScoreCurrentMetricYear, citeScoreTracker, citeScoreTrackerYear, "
+                "sjrMetric, sjrYear FROM issn_impact WHERE issn=?",
                 (issn,),
             )
             for row in data:
@@ -166,14 +180,14 @@ class Sqlite(Persistence):
                 return j
 
     def set_impact_by_issn(
-            self,
-            issn: str,
-            citeScoreCurrentMetric: float,
-            citeScoreCurrentMetricYear: int,
-            citeScoreTracker: float,
-            citeScoreTrackerYear: int,
-            sjrMetric: float,
-            sjrYear: int,
+        self,
+        issn: str,
+        citeScoreCurrentMetric: float,
+        citeScoreCurrentMetricYear: int,
+        citeScoreTracker: float,
+        citeScoreTrackerYear: int,
+        sjrMetric: float,
+        sjrYear: int,
     ):
         with self._con:
             data = (
@@ -185,8 +199,8 @@ class Sqlite(Persistence):
                 sjrMetric,
                 sjrYear,
             )
-            sql = """INSERT OR IGNORE INTO issn_impact (issn, citeScoreCurrentMetric, citeScoreCurrentMetricYear, citeScoreTracker, citeScoreTrackerYear, sjrMetric, sjrYear)
-                VALUES (?, ?, ?, ?, ?, ?, ?)"""
+            sql = """INSERT OR IGNORE INTO issn_impact (issn, citeScoreCurrentMetric, citeScoreCurrentMetricYear, 
+            citeScoreTracker, citeScoreTrackerYear, sjrMetric, sjrYear) VALUES (?, ?, ?, ?, ?, ?, ?)"""
             self._con.execute(sql, data)
 
     def get_publisher_by_issn(self, issn: str):
@@ -224,8 +238,9 @@ class Sqlite(Persistence):
     def save(self, documents):
         with self._con:
             try:
-                sql = """ INSERT OR IGNORE INTO documents (title, abstract, keywords, author, published_date, doi, eid, publication_name, issn, eissn, type, sub_type, search_query, source, affiliation_country, citedby_count)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"""
+                sql = """INSERT OR IGNORE INTO documents (title, abstract, keywords, author, published_date, doi, 
+                eid, publication_name, issn, eissn, type, sub_type, search_query, source, affiliation_country, 
+                citedby_count) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"""
                 self._con.executemany(sql, documents)
 
                 LOGGER.info("Document inserted successfully")
