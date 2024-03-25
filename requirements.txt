@@ -1,6 +1,7 @@
 argparse
 black
 datetime
+flake8
 geopandas
 isort
 logging

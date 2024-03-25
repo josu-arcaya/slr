@@ -1,12 +1,7 @@
 import abc
-import json
 import logging
-import os
-import time
-import urllib
-import urllib.request
 
-from src.core.utils import Manuscript, Persistence
+from src.core.utils import Persistence
 
 LOGGER = logging.getLogger("systematic")
 

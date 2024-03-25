@@ -1,24 +1,13 @@
 import logging
-from collections import namedtuple
 from datetime import datetime
 
-from database import Database
-from models import (
-    AggregatedPublisher,
-    Base,
-    Continent,
-    Document,
-    DoiEurl,
-    EissnPublisher,
-    IssnImpact,
-    IssnPublisher,
-    Journal,
-    Manuscript,
-    Publisher,
-)
-from sqlalchemy import MetaData, create_engine, select, update
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session, aliased, sessionmaker
+from sqlalchemy.orm import aliased
+
+from database import Database
+from models import (Continent, Document, DoiEurl, EissnPublisher, IssnImpact,
+                    IssnPublisher)
 
 LOGGER = logging.getLogger("systematic")
 
@@ -41,7 +30,8 @@ class SqlAlchemyORM:
                 return {
                     "issn": result.issn,
                     "citeScoreCurrentMetric": result.citeScoreCurrentMetric,
-                    "citeScoreCurrentMetricYear": result.citeScoreCurrentMetricYear,
+                    "citeScoreCurrentMetricYear":
+                        result.citeScoreCurrentMetricYear,
                     "citeScoreTracker": result.citeScoreTracker,
                     "citeScoreTrackerYear": result.citeScoreTrackerYear,
                     "sjrMetric": result.sjrMetric,
@@ -51,15 +41,15 @@ class SqlAlchemyORM:
                 return None
 
     def set_impact_by_issn(
-        # This function sets the impact by ISSN
-        self,
-        issn: str,
-        citeScoreCurrentMetric: float,
-        citeScoreCurrentMetricYear: int,
-        citeScoreTracker: float,
-        citeScoreTrackerYear: int,
-        sjrMetric: float,
-        sjrYear: int,
+            # This function sets the impact by ISSN
+            self,
+            issn: str,
+            citeScoreCurrentMetric: float,
+            citeScoreCurrentMetricYear: int,
+            citeScoreTracker: float,
+            citeScoreTrackerYear: int,
+            sjrMetric: float,
+            sjrYear: int,
     ):
         with self.db.get_session() as sess:
             issn_impact = IssnImpact(
@@ -77,9 +67,11 @@ class SqlAlchemyORM:
     def get_publisher_by_issn(self, issn: str):
         # This function gets the publisher by ISSN
         with self.db.get_session() as sess:
-            result = sess.execute(select(IssnPublisher).filter_by(issn=issn)).first()
+            result = sess.execute(
+                select(IssnPublisher).filter_by(issn=issn)).first()
             if result:
-                return {"issn": result[0].issn, "publisher": result[0].publisher}
+                return {"issn": result[0].issn,
+                        "publisher": result[0].publisher}
             else:
                 return None
 
@@ -93,9 +85,11 @@ class SqlAlchemyORM:
     def get_publisher_by_eissn(self, eissn: str):
         # This function gets the publisher by EISSN
         with self.db.get_session() as sess:
-            result = sess.execute(select(EissnPublisher).filter_by(eissn=eissn)).first()
+            result = sess.execute(
+                select(EissnPublisher).filter_by(eissn=eissn)).first()
             if result:
-                return {"eissn": result[0].eissn, "publisher": result[0].publisher}
+                return {"eissn": result[0].eissn,
+                        "publisher": result[0].publisher}
             else:
                 return None
 
@@ -141,8 +135,10 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.eid, Document.issn, Document.eissn)
-                .outerjoin(IssnPublisher, Document.issn.__eq__(IssnPublisher.issn))
-                .filter(IssnPublisher.publisher.is_(None), Document.issn.isnot(None))
+                .outerjoin(IssnPublisher,
+                           Document.issn.__eq__(IssnPublisher.issn))
+                .filter(IssnPublisher.publisher.is_(None),
+                        Document.issn.isnot(None))
                 .all()
             )
             return [(row[0], row[1], row[2]) for row in result]
@@ -152,8 +148,10 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.eid, Document.issn, Document.eissn)
-                .outerjoin(EissnPublisher, Document.eissn.__eq__(EissnPublisher.eissn))
-                .filter(EissnPublisher.publisher.is_(None), Document.eissn.isnot(None))
+                .outerjoin(EissnPublisher,
+                           Document.eissn.__eq__(EissnPublisher.eissn))
+                .filter(EissnPublisher.publisher.is_(None),
+                        Document.eissn.isnot(None))
                 .all()
             )
             return [(row[0], row[1], row[2]) for row in result]
@@ -163,9 +161,11 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             result = (
                 sess.query(
-                    Document.id_document, Document.eid, Document.issn, Document.eissn
+                    Document.id_document, Document.eid, Document.issn,
+                    Document.eissn
                 )
-                .outerjoin(IssnPublisher, Document.issn.__eq__(IssnPublisher.issn))
+                .outerjoin(IssnPublisher,
+                           Document.issn.__eq__(IssnPublisher.issn))
                 .filter(IssnPublisher.publisher.is_(None))
                 .all()
             )
@@ -187,13 +187,15 @@ class SqlAlchemyORM:
                 exit(-1)
 
     def get_empty_continents(self):
-        # Function to retrieve affiliation countries from documents that have no corresponding continent information
+        # Function to retrieve affiliation countries from
+        # documents that have no corresponding continent information
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.affiliation_country.distinct())
                 .outerjoin(
                     Continent,
-                    Document.affiliation_country.__eq__(Continent.affiliation_country),
+                    Document.affiliation_country.__eq__(
+                        Continent.affiliation_country),
                 )
                 .filter(
                     Continent.continent.is_(None),
@@ -208,7 +210,8 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             try:
                 for tpl in tuples:
-                    continent = Continent(affiliation_country=tpl[0], continent=tpl[1])
+                    continent = Continent(affiliation_country=tpl[0],
+                                          continent=tpl[1])
                     sess.add(continent)
                 sess.commit()
                 LOGGER.info("Continent inserted successfully")
@@ -235,10 +238,12 @@ class SqlAlchemyORM:
             sess.commit()
 
     def get_empty_openaccess(self):
-        # This function gets documents without open access and with status 3 in StudySelection
+        # This function gets documents without open access
+        # and with status 3 in StudySelection
         with self.db.get_session() as sess:
             subquery = (
-                # StudySelection is not defined, the model currently does not exist.
+                # StudySelection is not defined,
+                # the model currently does not exist.
                 sess.query(StudySelection.id_document)
                 .filter(StudySelection.status == 3)
                 .subquery()
@@ -255,9 +260,11 @@ class SqlAlchemyORM:
 
             return [(row[0]) for row in result]
 
-    # Currently the following function will not work because the openaccess field does not exist in the document.
+    # Currently the following function will not work
+    # because the openaccess field does not exist in the document.
     def set_openaccess(self, eid: str, openaccess: str):
-        # This function updates the 'openaccess' field of a document in the database.
+        # This function updates the 'openaccess'
+        # field of a document in the database.
         with self.db.get_session() as sess:
             try:
                 stmt = (

@@ -4,7 +4,6 @@ import os
 from abstract_database import AbstractDatabase
 from models import Base
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # Configure logging
@@ -39,10 +38,11 @@ class Database(AbstractDatabase):
 
         This method checks if the database already exists in the file system.
         If the database does not exist, it uses the model definitions
-        (declared in the Base class) to create all the corresponding tables in the database,
-        the models are located in models.py.
+        (declared in the Base class) to create all the corresponding tables in
+        the database, the models are located in models.py.
 
-        If the database already exists, no additional action is taken and an informative message is logged.
+        If the database already exists, no additional action is taken
+        and an informative message is logged.
         """
         if not os.path.exists(self._db_name):
             Base.metadata.create_all(self._engine)
