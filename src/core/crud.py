@@ -1,12 +1,14 @@
 import logging
-from datetime import datetime
 from collections import namedtuple
-from models import Base, Publisher, IssnPublisher, EissnPublisher, IssnImpact, Document, DoiEurl, Continent, \
-    AggregatedPublisher, Manuscript, Journal
+from datetime import datetime
+
 from database import Database
-from sqlalchemy import create_engine, MetaData, select, update
-from sqlalchemy.orm import sessionmaker, Session, aliased
+from models import (AggregatedPublisher, Base, Continent, Document, DoiEurl,
+                    EissnPublisher, IssnImpact, IssnPublisher, Journal,
+                    Manuscript, Publisher)
+from sqlalchemy import MetaData, create_engine, select, update
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session, aliased, sessionmaker
 
 LOGGER = logging.getLogger("systematic")
 

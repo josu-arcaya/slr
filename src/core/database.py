@@ -1,10 +1,11 @@
 import logging
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 import os
-from sqlalchemy.ext.declarative import declarative_base
+
 from abstract_database import AbstractDatabase
 from models import Base
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 # Configure logging
 LOGGER = logging.getLogger(__name__)

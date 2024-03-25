@@ -1,15 +1,17 @@
 import os
 import sys
 import unittest
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import CompileError
+from sqlalchemy.orm import sessionmaker
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from database import Database
 from crud import SqlAlchemyORM
-from models import Base, Publisher, IssnPublisher, EissnPublisher, IssnImpact, Document, DoiEurl, Continent
+from database import Database
+from models import (Base, Continent, Document, DoiEurl, EissnPublisher,
+                    IssnImpact, IssnPublisher, Publisher)
 
 
 class TestSqlAlchemyORM(unittest.TestCase):

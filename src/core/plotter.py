@@ -2,15 +2,14 @@ import enum
 import logging
 from tkinter import SEPARATOR
 from tkinter.ttk import Separator
-from pywaffle import Waffle
 
 import geopandas
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from pywaffle import Waffle
 
 LOGGER = logging.getLogger("systematic")
 

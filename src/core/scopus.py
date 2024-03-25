@@ -3,10 +3,11 @@ import logging
 import os
 import socket
 import time
-import urllib, urllib.request
-import requests
-
+import urllib
+import urllib.request
 from http import HTTPStatus
+
+import requests
 from ratelimiter import RateLimiter
 from src.core.query import Query
 from src.core.utils import Journal, Manuscript, Persistence, Sqlite

@@ -1,22 +1,21 @@
 import abc
 import logging
 import os
-import pycurl
+import sqlite3 as sl
+from collections import namedtuple
+from datetime import datetime
+from io import BytesIO
 
 import psycopg2 as ps
-import sqlite3 as sl
 import pycountry_convert as pc
-
-from io import BytesIO
-from collections import namedtuple
+import pycurl
+from models import (AggregatedPublisher, Base, Continent, Document, DoiEurl,
+                    EissnPublisher, IssnImpact, IssnPublisher, Journal,
+                    Manuscript, Publisher)
 from ratelimiter import RateLimiter
-from datetime import datetime
-
-from sqlalchemy import create_engine, MetaData, select
-from sqlalchemy.orm import sessionmaker, Session, aliased
+from sqlalchemy import MetaData, create_engine, select
 from sqlalchemy.exc import IntegrityError
-from models import Base, Publisher, IssnPublisher, EissnPublisher, IssnImpact, Document, DoiEurl, Continent, \
-    AggregatedPublisher, Manuscript, Journal
+from sqlalchemy.orm import Session, aliased, sessionmaker
 
 Manuscript = namedtuple(
     "Manuscript",
