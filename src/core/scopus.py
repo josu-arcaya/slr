@@ -3,10 +3,11 @@ import logging
 import os
 import socket
 import time
-import urllib, urllib.request
-import requests
-
+import urllib
+import urllib.request
 from http import HTTPStatus
+
+import requests
 from ratelimiter import RateLimiter
 from src.core.query import Query
 from src.core.utils import Journal, Manuscript, Persistence, Sqlite
@@ -30,7 +31,9 @@ class Scopus(Query):
 
         # Check API key
         if os.getenv("ELSEVIER_API_KEY") is None:
-            LOGGER.error("Please define ELSEVIER_API_KEY environment variable.")
+            LOGGER.error(
+                "Please define ELSEVIER_API_KEY " "environment variable."
+            )
             exit(-1)
         self._api_key = os.getenv("ELSEVIER_API_KEY")
 
@@ -46,7 +49,8 @@ class Scopus(Query):
             try:
                 response = urllib.request.urlopen(request, timeout=300)
                 LOGGER.info(
-                    f"{response.getheader('X-RateLimit-Remaining')} requests left."
+                    f"{response.getheader('X-RateLimit-Remaining')} "
+                    f"requests left."
                 )
                 return response
             except socket.timeout as e:
@@ -60,7 +64,10 @@ class Scopus(Query):
 
     @RateLimiter(max_calls=2, period=1)
     def get_publisher_by_eid(self, eid: str):
-        url = f"https://api.elsevier.com/content/abstract/eid/{eid}?apiKey={self._api_key}"
+        url = (
+            f"https://api.elsevier.com/content/abstract/eid/{eid}"
+            f"?apiKey={self._api_key}"
+        )
 
         response = self.stubborn_url_open(url=url)
         json_response = json.loads(response.read())
@@ -76,7 +83,7 @@ class Scopus(Query):
                 .get("publisher")
                 .get("publishername")
             )
-        except AttributeError as e:
+        except AttributeError:
             LOGGER.error(f"Error fetching publisher for eid = {eid}.")
 
         return publisher
@@ -90,7 +97,8 @@ class Scopus(Query):
             publisher = cache.get_publisher_by_eissn(eissn=eissn)
         if not publisher and eid:
             LOGGER.info(
-                f"Not issn = {issn} nor eissn = {eissn} are yet cached, eid = {eid}"
+                f"Not issn = {issn} nor eissn = {eissn} are yet cached, "
+                f"eid = {eid}"
             )
             publisher = self.get_publisher_by_eid(eid=eid)
 
@@ -103,21 +111,26 @@ class Scopus(Query):
 
     @RateLimiter(max_calls=2, period=1)
     def get_impact_by_issn(self, issn: str):
-        url = f"https://api.elsevier.com/content/serial/title/issn/{issn}?apiKey={self._api_key}"
+        url = (
+            f"https://api.elsevier.com/content/serial/title/issn/{issn}"
+            f"?apiKey={self._api_key}"
+        )
 
         response = self.stubborn_url_open(url=url)
         json_response = json.loads(response.read())
 
         try:
-            entry = json_response.get("serial-metadata-response").get("entry")[0]
+            entry = json_response.get("serial-metadata-response").get("entry")[
+                0
+            ]
 
             citeScoreCurrentMetric = entry.get("citeScoreYearInfoList").get(
                 "citeScoreCurrentMetric"
             )
 
-            citeScoreCurrentMetricYear = entry.get("citeScoreYearInfoList").get(
-                "citeScoreCurrentMetricYear"
-            )
+            citeScoreCurrentMetricYear = entry.get(
+                "citeScoreYearInfoList"
+            ).get("citeScoreCurrentMetricYear")
             citeScoreTracker = entry.get("citeScoreYearInfoList").get(
                 "citeScoreTracker"
             )
@@ -127,7 +140,9 @@ class Scopus(Query):
             sjrMetric = entry.get("SJRList").get("SJR")[0].get("$")
             sjrYear = entry.get("SJRList").get("SJR")[0].get("@year")
         except AttributeError as e:
-            LOGGER.error(f"Error fetching impact for issn = {issn}. Error = {e}")
+            LOGGER.error(
+                f"Error fetching impact for issn = {issn}. Error = {e}"
+            )
 
         j = Journal(
             issn=issn,
@@ -154,14 +169,16 @@ class Scopus(Query):
         entries = []
         if json_entries:
             for e in json_entries:
-                m = self.Entry(e, self._raw_search_query, self._name).to_manuscript()
+                m = self.Entry(
+                    e, self._raw_search_query, self._name
+                ).to_manuscript()
                 entries.append(m)
 
         json_links = json_response.get("search-results").get("link")
 
         next_link = None
-        for l in filter(lambda x: x.get("@ref") == "next", json_links):
-            next_link = l.get("@href")
+        for link in filter(lambda x: x.get("@ref") == "next", json_links):
+            next_link = link.get("@href")
 
         return entries, next_link
 
@@ -199,7 +216,9 @@ class Scopus(Query):
         response = self.stubborn_url_open(url=url)
         json_response = json.loads(response.read())
 
-        return json_response.get("search-results").get("opensearch:totalResults")
+        return json_response.get("search-results").get(
+            "opensearch:totalResults"
+        )
 
     def fill_publishers(self):
         p = self._persistence()
@@ -212,10 +231,15 @@ class Scopus(Query):
 
     @RateLimiter(max_calls=2, period=1)
     def get_openaccess(self, eid: str):
-        url = f"https://api.elsevier.com/content/abstract/eid/{eid}?apiKey=43b38cab54e0a0e4e42667d2998f51e8"
+        url = (
+            f"https://api.elsevier.com/content/abstract/eid/{eid}"
+            f"?apiKey=43b38cab54e0a0e4e42667d2998f51e8"
+        )
         headers = {"Accept": "application/json"}
         response = requests.get(url, headers=headers, timeout=10)
-        return response.json()["abstracts-retrieval-response"]["coredata"]["openaccess"]
+        return response.json()["abstracts-retrieval-response"]["coredata"][
+            "openaccess"
+        ]
 
     class Entry:
         def __init__(self, entry, search_query, name):
@@ -242,7 +266,7 @@ class Scopus(Query):
                     "affiliation-country"
                 )
                 return affiliation_country
-            except TypeError as e:
+            except TypeError:
                 LOGGER.info(f"The author {self._author} has no affiliation.")
 
         def to_manuscript(self):

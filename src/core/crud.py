@@ -1,12 +1,19 @@
 import logging
 from datetime import datetime
-from collections import namedtuple
-from models import Base, Publisher, IssnPublisher, EissnPublisher, IssnImpact, Document, DoiEurl, Continent, \
-    AggregatedPublisher, Manuscript, Journal
+
 from database import Database
-from sqlalchemy import create_engine, MetaData, select, update
-from sqlalchemy.orm import sessionmaker, Session, aliased
+from models import (
+    Continent,
+    Document,
+    DoiEurl,
+    EissnPublisher,
+    IssnImpact,
+    IssnPublisher,
+    StudySelection,
+)
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import aliased
 
 LOGGER = logging.getLogger("systematic")
 
@@ -16,7 +23,7 @@ class SqlAlchemyORM:
         self.db = Database(db_name)
 
     def get_impact_by_issn(self, issn: str):
-        # Obtiene el impacto por ISSN
+        # This function gets the impact by ISSN
         with self.db.get_session() as sess:
             issn_impact_alias = aliased(IssnImpact)
             result = (
@@ -27,27 +34,28 @@ class SqlAlchemyORM:
 
             if result:
                 return {
-                    'issn': result.issn,
-                    'citeScoreCurrentMetric': result.citeScoreCurrentMetric,
-                    'citeScoreCurrentMetricYear': result.citeScoreCurrentMetricYear,
-                    'citeScoreTracker': result.citeScoreTracker,
-                    'citeScoreTrackerYear': result.citeScoreTrackerYear,
-                    'sjrMetric': result.sjrMetric,
-                    'sjrYear': result.sjrYear,
+                    "issn": result.issn,
+                    "citeScoreCurrentMetric": result.citeScoreCurrentMetric,
+                    "citeScoreCurrentMetricYear":
+                        result.citeScoreCurrentMetricYear,
+                    "citeScoreTracker": result.citeScoreTracker,
+                    "citeScoreTrackerYear": result.citeScoreTrackerYear,
+                    "sjrMetric": result.sjrMetric,
+                    "sjrYear": result.sjrYear,
                 }
             else:
                 return None
 
     def set_impact_by_issn(
-            # Establece el impacto por ISSN
-            self,
-            issn: str,
-            citeScoreCurrentMetric: float,
-            citeScoreCurrentMetricYear: int,
-            citeScoreTracker: float,
-            citeScoreTrackerYear: int,
-            sjrMetric: float,
-            sjrYear: int,
+        # This function sets the impact by ISSN
+        self,
+        issn: str,
+        citeScoreCurrentMetric: float,
+        citeScoreCurrentMetricYear: int,
+        citeScoreTracker: float,
+        citeScoreTrackerYear: int,
+        sjrMetric: float,
+        sjrYear: int,
     ):
         with self.db.get_session() as sess:
             issn_impact = IssnImpact(
@@ -63,39 +71,49 @@ class SqlAlchemyORM:
             sess.commit()
 
     def get_publisher_by_issn(self, issn: str):
-        # Obtiene el editor (publisher) por ISSN
+        # This function gets the publisher by ISSN
         with self.db.get_session() as sess:
-            result = sess.execute(select(IssnPublisher).filter_by(issn=issn)).first()
+            result = sess.execute(
+                select(IssnPublisher).filter_by(issn=issn)
+            ).first()
             if result:
-                return {'issn': result[0].issn, 'publisher': result[0].publisher}
+                return {
+                    "issn": result[0].issn,
+                    "publisher": result[0].publisher,
+                }
             else:
                 return None
 
     def set_publisher_by_issn(self, issn: str, publisher: str):
-        # Establece el editor (publisher) por ISSN
+        # This function sets the publisher by ISSN
         with self.db.get_session() as sess:
             issn_publisher = IssnPublisher(issn=issn, publisher=publisher)
             sess.add(issn_publisher)
             sess.commit()
 
     def get_publisher_by_eissn(self, eissn: str):
-        # Obtiene el editor (publisher) por EISSN
+        # This function gets the publisher by EISSN
         with self.db.get_session() as sess:
-            result = sess.execute(select(EissnPublisher).filter_by(eissn=eissn)).first()
+            result = sess.execute(
+                select(EissnPublisher).filter_by(eissn=eissn)
+            ).first()
             if result:
-                return {'eissn': result[0].eissn, 'publisher': result[0].publisher}
+                return {
+                    "eissn": result[0].eissn,
+                    "publisher": result[0].publisher,
+                }
             else:
                 return None
 
     def set_publisher_by_eissn(self, eissn: str, publisher: str):
-        # Establece el editor (publisher) por EISSN
+        # This function sets the publisher by EISSN
         with self.db.get_session() as sess:
             eissn_publisher = EissnPublisher(eissn=eissn, publisher=publisher)
             sess.add(eissn_publisher)
             sess.commit()
 
     def save(self, documents):
-        # Guarda documentos en la base de datos
+        # This function saves documents in the database
         with self.db.get_session() as sess:
             try:
                 for doc in documents:
@@ -116,6 +134,7 @@ class SqlAlchemyORM:
                         source=doc[13],
                         affiliation_country=doc[14],
                         citedby_count=doc[15],
+                        openaccess=doc[16],
                     )
                     sess.add(document)
                 sess.commit()
@@ -125,44 +144,66 @@ class SqlAlchemyORM:
                 exit(-1)
 
     def get_all_issn_without_publisher(self):
-        # Obtiene los documentos con ISSN pero sin editor
+        # This function gets the documents with ISSN but without editor
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.eid, Document.issn, Document.eissn)
-                .outerjoin(IssnPublisher, Document.issn.__eq__(IssnPublisher.issn))
-                .filter(IssnPublisher.publisher.is_(None), Document.issn.isnot(None))
+                .outerjoin(
+                    IssnPublisher,
+                    Document.issn.__eq__(IssnPublisher.issn),
+                )
+                .filter(
+                    IssnPublisher.publisher.is_(None),
+                    Document.issn.isnot(None),
+                )
                 .all()
             )
             return [(row[0], row[1], row[2]) for row in result]
 
     def get_all_eissn_without_publisher(self):
-        # Obtiene los documentos con EISSN pero sin editor
+        # This function gets the documents with EISSN but without editorr
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.eid, Document.issn, Document.eissn)
-                .outerjoin(EissnPublisher, Document.eissn.__eq__(EissnPublisher.eissn))
-                .filter(EissnPublisher.publisher.is_(None), Document.eissn.isnot(None))
+                .outerjoin(
+                    EissnPublisher,
+                    Document.eissn.__eq__(EissnPublisher.eissn),
+                )
+                .filter(
+                    EissnPublisher.publisher.is_(None),
+                    Document.eissn.isnot(None),
+                )
                 .all()
             )
             return [(row[0], row[1], row[2]) for row in result]
 
     def get_empty_publisher(self):
-        # Obtiene los documentos sin editor
+        # This function gets the documents without a publisher
         with self.db.get_session() as sess:
             result = (
-                sess.query(Document.id_document, Document.eid, Document.issn, Document.eissn)
-                .outerjoin(IssnPublisher, Document.issn.__eq__(IssnPublisher.issn))
+                sess.query(
+                    Document.id_document,
+                    Document.eid,
+                    Document.issn,
+                    Document.eissn,
+                )
+                .outerjoin(
+                    IssnPublisher,
+                    Document.issn.__eq__(IssnPublisher.issn),
+                )
                 .filter(IssnPublisher.publisher.is_(None))
                 .all()
             )
             return [(row[0], row[1], row[2]) for row in result]
 
     def set_publisher(self, publishers):
-        # Establece el editor para documentos
+        # This function sets the publisher for documents
         with self.db.get_session() as sess:
             try:
                 for publisher in publishers:
-                    issn_publisher = IssnPublisher(issn=publisher[0], publisher=publisher[1])
+                    issn_publisher = IssnPublisher(
+                        issn=publisher[0], publisher=publisher[1]
+                    )
                     sess.add(issn_publisher)
                 sess.commit()
                 LOGGER.info("Publisher inserted successfully")
@@ -171,22 +212,33 @@ class SqlAlchemyORM:
                 exit(-1)
 
     def get_empty_continents(self):
-        # Obtiene los países afiliados a documentos que no tienen asignado un continente
+        # Function to retrieve affiliation countries from
+        # documents that have no corresponding continent information
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.affiliation_country.distinct())
-                .outerjoin(Continent, Document.affiliation_country.__eq__(Continent.affiliation_country))
-                .filter(Continent.continent.is_(None), Document.affiliation_country.isnot(None))
+                .outerjoin(
+                    Continent,
+                    Document.affiliation_country.__eq__(
+                        Continent.affiliation_country
+                    ),
+                )
+                .filter(
+                    Continent.continent.is_(None),
+                    Document.affiliation_country.isnot(None),
+                )
                 .all()
             )
             return [(row[0]) for row in result]
 
     def set_continent(self, tuples):
-        # Establece el continente para países afiliados a documentos
+        # This function sets the continent for affiliated countries
         with self.db.get_session() as sess:
             try:
                 for tpl in tuples:
-                    continent = Continent(affiliation_country=tpl[0], continent=tpl[1])
+                    continent = Continent(
+                        affiliation_country=tpl[0], continent=tpl[1]
+                    )
                     sess.add(continent)
                 sess.commit()
                 LOGGER.info("Continent inserted successfully")
@@ -195,7 +247,7 @@ class SqlAlchemyORM:
                 exit(-1)
 
     def get_doi(self):
-        # Obtiene los documentos con DOI sin URL de acceso
+        # This function gets documents with DOI without access URL
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.doi)
@@ -206,49 +258,76 @@ class SqlAlchemyORM:
             return [(row[0]) for row in result]
 
     def set_doi_eurl(self, doi: str, eurl: str):
-        # Establece la URL de acceso para documentos con DOI
+        # This function sets the access URL for documents with DOI
         with self.db.get_session() as sess:
             doi_eurl = DoiEurl(doi=doi, eurl=eurl)
             sess.add(doi_eurl)
             sess.commit()
 
     def get_empty_openaccess(self):
-        # Obtiene documentos sin acceso abierto y con status 3 en StudySelection
+        # This function gets documents without openaccess
+        # and with status 3 in StudySelection
         with self.db.get_session() as sess:
             subquery = (
-                # No se define StudySelection, actualmente no existe el modelo.
                 sess.query(StudySelection.id_document)
                 .filter(StudySelection.status == 3)
                 .subquery()
             )
 
-            documents_alias = aliased(Document)
+            doc = aliased(Document)
 
             result = (
-                sess.query(documents_alias.eid)
-                .join(subquery, documents_alias.id_document.__eq__(subquery))
-                .filter(documents_alias.openaccess.is_(None))
+                sess.query(doc.eid)
+                .join(
+                    subquery,
+                    doc.id_document.__eq__(subquery),
+                )
+                .filter(doc.openaccess.is_(None))
                 .all()
             )
 
             return [(row[0]) for row in result]
 
-    # Actualmente no funcinará la siguiente función porque no existe el campo openaccess en el documento.
     def set_openaccess(self, eid: str, openaccess: str):
-        # Esta función actualiza el campo 'openaccess' de un documento en la base de datos.
+        # This method updates the "openaccess field of
+        # a document in the database.
         with self.db.get_session() as sess:
             try:
-                # Crear la sentencia de actualización
                 stmt = (
                     update(Document)
                     .where(Document.eid == eid)
                     .values(openaccess=openaccess)
                 )
-
-                # Ejecutar la sentencia de actualización
                 sess.execute(stmt)
 
                 LOGGER.info("Field openaccess updated successfully")
             except Exception as error:
                 LOGGER.error(f"Failed to update openaccess, {error}.")
+                exit(-1)
+
+    def set_status_studyselection(self, document_id: int, status: int):
+        # Este método actualiza el estado de la selección de estudio
+        # relacionado con un documento en la base de datos.
+        with self.db.get_session() as sess:
+            try:
+                study_selection = (
+                    sess.query(StudySelection)
+                    .filter_by(id_document=document_id)
+                    .first()
+                )
+
+                if study_selection:
+                    study_selection.status = status
+                    sess.commit()
+                    LOGGER.info(
+                        "Status of study selection updated successfully"
+                    )
+                else:
+                    LOGGER.error(
+                        "Study selection not found for the given document ID"
+                    )
+            except Exception as error:
+                LOGGER.error(
+                    f"Failed to update status of study selection, {error}."
+                )
                 exit(-1)

@@ -6,7 +6,6 @@ from unittest.mock import Mock, patch
 
 from crud import SqlAlchemyORM
 from models import DoiEurl
-from sqlalchemy.exc import CompileError
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
@@ -51,7 +50,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
 
     # IssnPublisher publishing test and Publisher query through ISSN
     def test_set_get_publisher_by_issn(self):
-        with patch("utils.create_engine") as mock_create_engine:
+        with patch("sqlalchemy.create_engine") as mock_create_engine:
             mock_create_engine.return_value = Mock()
             self.orm.set_publisher_by_issn("1234-5678", "Publisher")
 
@@ -63,7 +62,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
 
     # EissnPublisher publishing and query test
     def test_set_get_publisher_by_eissn(self):
-        with patch("utils.create_engine") as mock_create_engine:
+        with patch("sqlalchemy.create_engine") as mock_create_engine:
             mock_create_engine.return_value = Mock()
             self.orm.set_publisher_by_eissn("8765-4321", "EissnPublisher")
 
@@ -75,7 +74,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
 
     # IssnImpact publishing test and query consult through ISSN
     def test_set_get_impact_by_issn(self):
-        with patch("utils.create_engine") as mock_create_engine:
+        with patch("sqlalchemy.create_engine") as mock_create_engine:
             mock_create_engine.return_value = Mock()
             self.orm.set_impact_by_issn(
                 "1234-5678", 1.0, 2022, 2.0, 2023, 3.0, 2024
@@ -106,6 +105,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
                 "Source1",
                 "Country1",
                 10,
+                "Access1",
             )
         ]
         self.orm.save(documents)
@@ -135,6 +135,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
                     "Source2",
                     "Country2",
                     10,
+                    "Access2",
                 )
             ]
             self.orm.save(documents)
@@ -171,6 +172,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
                 "Source3",
                 "Country3",
                 10,
+                "Access3",
             )
         ]
         self.orm.save(documents)
@@ -205,6 +207,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
                 "Source4",
                 "Country4",
                 10,
+                "Access4",
             )
         ]
 
@@ -242,7 +245,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
         self.assertEqual(result, expected_url, "Error in set_doi_eurl")
 
     # Openaccess publishing and query test
-    def test_set_get_openaccess(self):
+    def test_set_get_empty_openaccess_status(self):
         documents = [
             (
                 "Title5",
@@ -261,23 +264,38 @@ class TestSqlAlchemyORM(unittest.TestCase):
                 "Source5",
                 "Country5",
                 10,
+                None,
             )
         ]
         self.orm.save(documents)
 
         try:
-            result = self.orm.get_empty_openaccess()
-            if result is not None:
-                self.assertEqual(
-                    result, ["EID5"], "Error in "
-                                      "get_empty_openaccess"
-                )
-
             self.orm.set_openaccess("EID5", "openaccess")
-        except (NameError, CompileError, SystemExit):
+            self.orm.set_status("EID5", 3)
+
+            result_after_update_openaccess = self.orm.get_empty_openaccess()
+            self.assertNotIn(
+                "EID5",
+                result_after_update_openaccess,
+                "Error in set_openaccess",
+            )
+
+            result_after_update_status = self.orm.get_empty_status()
+            self.assertNotIn(
+                "EID5", result_after_update_status,
+                "Error in set_status"
+            )
+
+            result_openaccess_before = self.orm.get_empty_openaccess()
+            if result_openaccess_before is not None:
+                self.assertEqual(
+                    result_openaccess_before,
+                    ["EID5"],
+                    "Error in get_empty_openaccess",
+                )
+        except Exception as error:
             LOGGER.error(
-                " Error in test_set_get openaccess. The name "
-                "'StudySelection' is not defined.\n"
+                f"Error in test_set_get_empty_openaccess_status. {error}\n"
             )
 
     @classmethod

@@ -1,8 +1,11 @@
 argparse
+black
 datetime
+flake8
 geopandas
+isort
+logging
 networkx
-nose2
 pip-chill
 psycopg2
 pycountry-convert
@@ -11,4 +14,3 @@ pywaffle
 ratelimiter
 requests
 sqlalchemy
-

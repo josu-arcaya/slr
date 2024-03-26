@@ -1,13 +1,10 @@
 import abc
-import json
 import logging
-import os
-import urllib, urllib.request
-import time
 
-from src.core.utils import Manuscript, Persistence
+from src.core.utils import Persistence
 
-LOGGER = logging.getLogger('systematic')
+LOGGER = logging.getLogger("systematic")
+
 
 class Query:
 
