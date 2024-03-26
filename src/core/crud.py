@@ -289,7 +289,7 @@ class SqlAlchemyORM:
             return [(row[0]) for row in result]
 
     def set_openaccess(self, eid: str, openaccess: str):
-        # This method updates the "openaccess field of
+        # This method updates the openaccess field of
         # a document in the database.
         with self.db.get_session() as sess:
             try:
@@ -306,8 +306,8 @@ class SqlAlchemyORM:
                 exit(-1)
 
     def set_status_studyselection(self, document_id: int, status: int):
-        # Este método actualiza el estado de la selección de estudio
-        # relacionado con un documento en la base de datos.
+        # This method updates the status of the study selection
+        # related to a document in the database.
         with self.db.get_session() as sess:
             try:
                 study_selection = (

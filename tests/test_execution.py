@@ -44,8 +44,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
         session = self.orm.db.get_session()
         self.assertIsNotNone(
             session,
-            "Error in get_session: Session was " "not obtained "
-            "correctly",
+            "Error in get_session: Session was " "not obtained " "correctly",
         )
 
     # IssnPublisher publishing test and Publisher query through ISSN
@@ -56,8 +55,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
 
         result = self.orm.get_publisher_by_issn("1234-5678")
         self.assertIsNotNone(
-            result, "Error in set_publisher_by_issn / "
-                    "get_publisher_by_issn"
+            result, "Error in set_publisher_by_issn / " "get_publisher_by_issn"
         )
 
     # EissnPublisher publishing and query test
@@ -282,8 +280,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
 
             result_after_update_status = self.orm.get_empty_status()
             self.assertNotIn(
-                "EID5", result_after_update_status,
-                "Error in set_status"
+                "EID5", result_after_update_status, "Error in set_status"
             )
 
             result_openaccess_before = self.orm.get_empty_openaccess()
