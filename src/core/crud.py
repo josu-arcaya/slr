@@ -1,13 +1,12 @@
 import logging
 from datetime import datetime
 
-from sqlalchemy import select, update
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import aliased
-
 from database import Database
 from models import (Continent, Document, DoiEurl, EissnPublisher, IssnImpact,
                     IssnPublisher)
+from sqlalchemy import select, update
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import aliased
 
 LOGGER = logging.getLogger("systematic")
 
@@ -41,15 +40,15 @@ class SqlAlchemyORM:
                 return None
 
     def set_impact_by_issn(
-            # This function sets the impact by ISSN
-            self,
-            issn: str,
-            citeScoreCurrentMetric: float,
-            citeScoreCurrentMetricYear: int,
-            citeScoreTracker: float,
-            citeScoreTrackerYear: int,
-            sjrMetric: float,
-            sjrYear: int,
+        # This function sets the impact by ISSN
+        self,
+        issn: str,
+        citeScoreCurrentMetric: float,
+        citeScoreCurrentMetricYear: int,
+        citeScoreTracker: float,
+        citeScoreTrackerYear: int,
+        sjrMetric: float,
+        sjrYear: int,
     ):
         with self.db.get_session() as sess:
             issn_impact = IssnImpact(
@@ -68,10 +67,13 @@ class SqlAlchemyORM:
         # This function gets the publisher by ISSN
         with self.db.get_session() as sess:
             result = sess.execute(
-                select(IssnPublisher).filter_by(issn=issn)).first()
+                select(IssnPublisher).filter_by(issn=issn)
+            ).first()
             if result:
-                return {"issn": result[0].issn,
-                        "publisher": result[0].publisher}
+                return {
+                    "issn": result[0].issn,
+                    "publisher": result[0].publisher,
+                }
             else:
                 return None
 
@@ -86,10 +88,13 @@ class SqlAlchemyORM:
         # This function gets the publisher by EISSN
         with self.db.get_session() as sess:
             result = sess.execute(
-                select(EissnPublisher).filter_by(eissn=eissn)).first()
+                select(EissnPublisher).filter_by(eissn=eissn)
+            ).first()
             if result:
-                return {"eissn": result[0].eissn,
-                        "publisher": result[0].publisher}
+                return {
+                    "eissn": result[0].eissn,
+                    "publisher": result[0].publisher,
+                }
             else:
                 return None
 
@@ -135,10 +140,14 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.eid, Document.issn, Document.eissn)
-                .outerjoin(IssnPublisher,
-                           Document.issn.__eq__(IssnPublisher.issn))
-                .filter(IssnPublisher.publisher.is_(None),
-                        Document.issn.isnot(None))
+                .outerjoin(
+                    IssnPublisher,
+                    Document.issn.__eq__(IssnPublisher.issn),
+                )
+                .filter(
+                    IssnPublisher.publisher.is_(None),
+                    Document.issn.isnot(None),
+                )
                 .all()
             )
             return [(row[0], row[1], row[2]) for row in result]
@@ -148,10 +157,14 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             result = (
                 sess.query(Document.eid, Document.issn, Document.eissn)
-                .outerjoin(EissnPublisher,
-                           Document.eissn.__eq__(EissnPublisher.eissn))
-                .filter(EissnPublisher.publisher.is_(None),
-                        Document.eissn.isnot(None))
+                .outerjoin(
+                    EissnPublisher,
+                    Document.eissn.__eq__(EissnPublisher.eissn),
+                )
+                .filter(
+                    EissnPublisher.publisher.is_(None),
+                    Document.eissn.isnot(None),
+                )
                 .all()
             )
             return [(row[0], row[1], row[2]) for row in result]
@@ -161,11 +174,15 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             result = (
                 sess.query(
-                    Document.id_document, Document.eid, Document.issn,
-                    Document.eissn
+                    Document.id_document,
+                    Document.eid,
+                    Document.issn,
+                    Document.eissn,
                 )
-                .outerjoin(IssnPublisher,
-                           Document.issn.__eq__(IssnPublisher.issn))
+                .outerjoin(
+                    IssnPublisher,
+                    Document.issn.__eq__(IssnPublisher.issn),
+                )
                 .filter(IssnPublisher.publisher.is_(None))
                 .all()
             )
@@ -195,7 +212,8 @@ class SqlAlchemyORM:
                 .outerjoin(
                     Continent,
                     Document.affiliation_country.__eq__(
-                        Continent.affiliation_country),
+                        Continent.affiliation_country
+                    ),
                 )
                 .filter(
                     Continent.continent.is_(None),
@@ -210,8 +228,9 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             try:
                 for tpl in tuples:
-                    continent = Continent(affiliation_country=tpl[0],
-                                          continent=tpl[1])
+                    continent = Continent(
+                        affiliation_country=tpl[0], continent=tpl[1]
+                    )
                     sess.add(continent)
                 sess.commit()
                 LOGGER.info("Continent inserted successfully")
@@ -253,7 +272,10 @@ class SqlAlchemyORM:
 
             result = (
                 sess.query(documents_alias.eid)
-                .join(subquery, documents_alias.id_document.__eq__(subquery))
+                .join(
+                    subquery,
+                    documents_alias.id_document.__eq__(subquery),
+                )
                 .filter(documents_alias.openaccess.is_(None))
                 .all()
             )

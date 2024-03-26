@@ -7,9 +7,7 @@ from io import BytesIO
 import psycopg2 as ps
 import pycountry_convert as pc
 import pycurl
-from models import (
-    Journal,
-)
+from models import Journal
 from ratelimiter import RateLimiter
 
 LOGGER = logging.getLogger("systematic")
@@ -41,9 +39,9 @@ class Postgres(Persistence):
         Persistence.__init__(self, database)
 
         if (
-                os.getenv("DB_USER") is None
-                or os.getenv("DB_HOST") is None
-                or os.getenv("DB_PASS") is None
+            os.getenv("DB_USER") is None
+            or os.getenv("DB_HOST") is None
+            or os.getenv("DB_PASS") is None
         ):
             logging.error(
                 "Please define DB_USER, DB_HOST and DB_PASS environment "
@@ -158,14 +156,14 @@ class Sqlite(Persistence):
                 return j
 
     def set_impact_by_issn(
-            self,
-            issn: str,
-            citeScoreCurrentMetric: float,
-            citeScoreCurrentMetricYear: int,
-            citeScoreTracker: float,
-            citeScoreTrackerYear: int,
-            sjrMetric: float,
-            sjrYear: int,
+        self,
+        issn: str,
+        citeScoreCurrentMetric: float,
+        citeScoreCurrentMetricYear: int,
+        citeScoreTracker: float,
+        citeScoreTrackerYear: int,
+        sjrMetric: float,
+        sjrYear: int,
     ):
         with self._con:
             data = (
@@ -186,8 +184,7 @@ class Sqlite(Persistence):
     def get_publisher_by_issn(self, issn: str):
         with self._con:
             data = self._con.execute(
-                "SELECT publisher FROM issn_publisher WHERE issn=?",
-                (issn,)
+                "SELECT publisher FROM issn_publisher WHERE issn=?", (issn,)
             )
             for row in data:
                 return row[0]
@@ -204,8 +201,7 @@ class Sqlite(Persistence):
     def get_publisher_by_eissn(self, eissn: str):
         with self._con:
             data = self._con.execute(
-                "SELECT publisher FROM eissn_publisher WHERE eissn=?",
-                (eissn,)
+                "SELECT publisher FROM eissn_publisher WHERE eissn=?", (eissn,)
             )
             for row in data:
                 return row[0]
@@ -358,7 +354,8 @@ class Location:
     def country_to_continent(self, country_name):
         country_alpha2 = pc.country_name_to_country_alpha2(country_name)
         country_continent_code = pc.country_alpha2_to_continent_code(
-            country_alpha2)
+            country_alpha2
+        )
         country_continent_name = pc.convert_continent_code_to_continent_name(
             country_continent_code
         )

@@ -3,8 +3,8 @@ import itertools
 import logging
 import os
 
-from slr.src.core import Editorial, Location, Persistence, Plotter, Scopus, \
-    Sqlite
+from slr.src.core import (Editorial, Location, Persistence, Plotter, Scopus,
+                          Sqlite)
 
 LOGGER = logging.getLogger("systematic")
 
@@ -68,7 +68,8 @@ def count_search_queries():
     with open("/tmp/search_terms_results.csv", "a") as f:
         for i, s in enumerate(search_queries):
             LOGGER.warning(
-                f"Counting elements for query {i} out of {total_queries}.")
+                f"Counting elements for query {i} out of {total_queries}."
+            )
             q = Scopus(persistence=Persistence, search_query=s)
             total_results = q.get_count()
             f.write(str(i) + "," + s + "," + total_results + "\n")
@@ -78,8 +79,11 @@ def main():
     text = "This application queries different academic engines."
     parser = argparse.ArgumentParser(description=text)
     parser.add_argument(
-        "-s", "--scopus", action="store_true", help="Query Scopus.",
-        required=False
+        "-s",
+        "--scopus",
+        action="store_true",
+        help="Query Scopus.",
+        required=False,
     )
     parser.add_argument(
         "-c",

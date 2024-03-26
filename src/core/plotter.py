@@ -109,10 +109,14 @@ class Plotter:
         print(self.__df.groupby(["publisher"]).size().head(10))
         cmap = "summer"
         # cmap = "Wistia"
-        to_replace = {"John Wiley": "Others", "MDPI": "Others",
-                      "Elsevier": "Others"}
+        to_replace = {
+            "John Wiley": "Others",
+            "MDPI": "Others",
+            "Elsevier": "Others",
+        }
         self.__df["publisher"] = self.__df["publisher"].replace(
-            to_replace=to_replace)
+            to_replace=to_replace
+        )
         self.__df.groupby(["year", "publisher"]).size().unstack().plot.bar(
             stacked=True, figsize=(6, 4), cmap=cmap, legend=False
         )
@@ -130,8 +134,9 @@ class Plotter:
 
         color = "royalblue"
         axes2 = plt.twinx()
-        axes2.plot(x, y, color=color, label="Sine", marker="s",
-                   linestyle="dashed")
+        axes2.plot(
+            x, y, color=color, label="Sine", marker="s", linestyle="dashed"
+        )
         axes2.set_ylabel("Records initially identified", color=color)
         axes2.tick_params(axis="y", labelcolor=color)
         axes2.set_ylim(ymin=0)
@@ -143,8 +148,7 @@ class Plotter:
 
     def plot_keywords(self):
         plt.close("all")
-        keywords = np.genfromtxt("search_terms.csv", dtype=str,
-                                 delimiter="\n")
+        keywords = np.genfromtxt("search_terms.csv", dtype=str, delimiter="\n")
 
         pos = {}
         vertical_limit = 20
@@ -175,7 +179,10 @@ class Plotter:
             **options
         )
         nx.draw_networkx_nodes(
-            G, nodelist=keywords[1].split(","), node_color="tab:red", pos=pos,
+            G,
+            nodelist=keywords[1].split(","),
+            node_color="tab:red",
+            pos=pos,
             **options
         )
         nx.draw_networkx_nodes(

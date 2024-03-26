@@ -31,8 +31,9 @@ class Scopus(Query):
 
         # Check API key
         if os.getenv("ELSEVIER_API_KEY") is None:
-            LOGGER.error("Please define ELSEVIER_API_KEY "
-                         "environment variable.")
+            LOGGER.error(
+                "Please define ELSEVIER_API_KEY " "environment variable."
+            )
             exit(-1)
         self._api_key = os.getenv("ELSEVIER_API_KEY")
 
@@ -63,8 +64,10 @@ class Scopus(Query):
 
     @RateLimiter(max_calls=2, period=1)
     def get_publisher_by_eid(self, eid: str):
-        url = (f"https://api.elsevier.com/content/abstract/eid/{eid}"
-               f"?apiKey={self._api_key}")
+        url = (
+            f"https://api.elsevier.com/content/abstract/eid/{eid}"
+            f"?apiKey={self._api_key}"
+        )
 
         response = self.stubborn_url_open(url=url)
         json_response = json.loads(response.read())
@@ -108,24 +111,26 @@ class Scopus(Query):
 
     @RateLimiter(max_calls=2, period=1)
     def get_impact_by_issn(self, issn: str):
-        url = (f"https://api.elsevier.com/content/serial/title/issn/{issn}"
-               f"?apiKey={self._api_key}")
+        url = (
+            f"https://api.elsevier.com/content/serial/title/issn/{issn}"
+            f"?apiKey={self._api_key}"
+        )
 
         response = self.stubborn_url_open(url=url)
         json_response = json.loads(response.read())
 
         try:
             entry = json_response.get("serial-metadata-response").get("entry")[
-                0]
+                0
+            ]
 
             citeScoreCurrentMetric = entry.get("citeScoreYearInfoList").get(
                 "citeScoreCurrentMetric"
             )
 
-            citeScoreCurrentMetricYear = \
-                (entry.get("citeScoreYearInfoList").get(
-                    "citeScoreCurrentMetricYear"
-                ))
+            citeScoreCurrentMetricYear = entry.get(
+                "citeScoreYearInfoList"
+            ).get("citeScoreCurrentMetricYear")
             citeScoreTracker = entry.get("citeScoreYearInfoList").get(
                 "citeScoreTracker"
             )
@@ -136,7 +141,8 @@ class Scopus(Query):
             sjrYear = entry.get("SJRList").get("SJR")[0].get("@year")
         except AttributeError as e:
             LOGGER.error(
-                f"Error fetching impact for issn = {issn}. Error = {e}")
+                f"Error fetching impact for issn = {issn}. Error = {e}"
+            )
 
         j = Journal(
             issn=issn,
@@ -163,8 +169,9 @@ class Scopus(Query):
         entries = []
         if json_entries:
             for e in json_entries:
-                m = self.Entry(e, self._raw_search_query,
-                               self._name).to_manuscript()
+                m = self.Entry(
+                    e, self._raw_search_query, self._name
+                ).to_manuscript()
                 entries.append(m)
 
         json_links = json_response.get("search-results").get("link")
@@ -210,7 +217,8 @@ class Scopus(Query):
         json_response = json.loads(response.read())
 
         return json_response.get("search-results").get(
-            "opensearch:totalResults")
+            "opensearch:totalResults"
+        )
 
     def fill_publishers(self):
         p = self._persistence()
@@ -223,12 +231,15 @@ class Scopus(Query):
 
     @RateLimiter(max_calls=2, period=1)
     def get_openaccess(self, eid: str):
-        url = (f"https://api.elsevier.com/content/abstract/eid/{eid}"
-               f"?apiKey=43b38cab54e0a0e4e42667d2998f51e8")
+        url = (
+            f"https://api.elsevier.com/content/abstract/eid/{eid}"
+            f"?apiKey=43b38cab54e0a0e4e42667d2998f51e8"
+        )
         headers = {"Accept": "application/json"}
         response = requests.get(url, headers=headers, timeout=10)
         return response.json()["abstracts-retrieval-response"]["coredata"][
-            "openaccess"]
+            "openaccess"
+        ]
 
     class Entry:
         def __init__(self, entry, search_query, name):

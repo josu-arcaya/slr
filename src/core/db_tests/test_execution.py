@@ -10,16 +10,8 @@ from sqlalchemy.orm import sessionmaker
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from crud import SqlAlchemyORM
 from database import Database
-from models import (
-    Base,
-    Continent,
-    Document,
-    DoiEurl,
-    EissnPublisher,
-    IssnImpact,
-    IssnPublisher,
-    Publisher,
-)
+from models import (Base, Continent, Document, DoiEurl, EissnPublisher,
+                    IssnImpact, IssnPublisher, Publisher)
 
 
 class TestSqlAlchemyORM(unittest.TestCase):
@@ -44,7 +36,8 @@ class TestSqlAlchemyORM(unittest.TestCase):
     def test_get_session(self):
         session = self.orm.db.get_session()
         self.assertIsNotNone(
-            session, "Error en get_session: La sesión no se obtuvo correctamente"
+            session,
+            "Error en get_session: La sesión no se obtuvo correctamente",
         )
 
     # Test de publicación de IssnPublisher y consulta del autor a través del ISSN
@@ -75,11 +68,15 @@ class TestSqlAlchemyORM(unittest.TestCase):
     def test_set_get_impact_by_issn(self):
         with patch("utils.create_engine") as mock_create_engine:
             mock_create_engine.return_value = Mock()
-            self.orm.set_impact_by_issn("1234-5678", 1.0, 2022, 2.0, 2023, 3.0, 2024)
+            self.orm.set_impact_by_issn(
+                "1234-5678", 1.0, 2022, 2.0, 2023, 3.0, 2024
+            )
 
         result = self.orm.get_impact_by_issn("1234-5678")
         print(f" Resultado de test_set_get_impact_by_issn: {result}\n")
-        self.assertIsNotNone(result, "Error en set_impact_by_issn / get_impact_by_issn")
+        self.assertIsNotNone(
+            result, "Error en set_impact_by_issn / get_impact_by_issn"
+        )
 
     # Test de publicación de un documento y consulta del doi de los documentos existentes
     def test_save_and_get_doi(self):
@@ -172,7 +169,9 @@ class TestSqlAlchemyORM(unittest.TestCase):
         ]
         self.orm.save(documents)
 
-        result_issn_without_publisher = self.orm.get_all_issn_without_publisher()
+        result_issn_without_publisher = (
+            self.orm.get_all_issn_without_publisher()
+        )
         print(
             f" Resultado de test_get_all_issn_without_publisher: {result_issn_without_publisher}\n"
         )
@@ -269,7 +268,9 @@ class TestSqlAlchemyORM(unittest.TestCase):
         try:
             result = self.orm.get_empty_openaccess()
             if result is not None:
-                self.assertEqual(result, ["EID5"], "Error en get_empty_openaccess")
+                self.assertEqual(
+                    result, ["EID5"], "Error en get_empty_openaccess"
+                )
 
             self.orm.set_openaccess("EID5", "openaccess")
         except (NameError, CompileError, SystemExit):
