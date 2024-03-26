@@ -112,4 +112,4 @@ class StudySelection(Base):
     id = Column(Integer, primary_key=True)
     status = Column(Integer)
     id_document = Column(Integer, ForeignKey("documents.id_document"))
-    document = relationship("Document")
+    document = relationship("Document", overlaps="study_selection")
