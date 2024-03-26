@@ -134,7 +134,7 @@ class SqlAlchemyORM:
                         source=doc[13],
                         affiliation_country=doc[14],
                         citedby_count=doc[15],
-                        openacces=doc[16],
+                        openaccess=doc[16],
                     )
                     sess.add(document)
                 sess.commit()
@@ -306,8 +306,8 @@ class SqlAlchemyORM:
                 exit(-1)
 
     def set_status_studyselection(self, document_id: int, status: int):
-        # Este método actualiza el estado de la selección de estudio
-        # relacionado con un documento en la base de datos.
+        # This method updates the status of the study selection
+        # related to a document in the database.
         with self.db.get_session() as sess:
             try:
                 study_selection = (
