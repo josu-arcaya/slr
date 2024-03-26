@@ -3,11 +3,14 @@ import os
 import sys
 import unittest
 from unittest.mock import Mock, patch
-from sqlalchemy.exc import CompileError
+
 from crud import SqlAlchemyORM
 from models import DoiEurl
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                             "../")))
+from sqlalchemy.exc import CompileError
+
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
+)
 
 
 logging.basicConfig(level=logging.INFO)
@@ -27,20 +30,23 @@ class TestSqlAlchemyORM(unittest.TestCase):
     def test_init(self):
         self.assertIsNotNone(
             self.orm.db._engine,
-            "Error in __init__: " "'Engine' has not been correctly "
+            "Error in __init__: "
+            "'Engine' has not been correctly "
             "initialized",
         )
         self.assertIsNotNone(
             self.orm.db._Session,
-            "Error in __init__: " "'Session' has not been correctly "
+            "Error in __init__: "
+            "'Session' has not been correctly "
             "initialized",
         )
 
     def test_get_session(self):
         session = self.orm.db.get_session()
         self.assertIsNotNone(
-            session, "Error in get_session: Session was " "not obtained "
-                     "correctly"
+            session,
+            "Error in get_session: Session was " "not obtained "
+            "correctly",
         )
 
     # IssnPublisher publishing test and Publisher query through ISSN
@@ -63,16 +69,17 @@ class TestSqlAlchemyORM(unittest.TestCase):
 
         result = self.orm.get_publisher_by_eissn("8765-4321")
         self.assertIsNotNone(
-            result, "Error in set_publisher_by_eissn / "
-                    "get_publisher_by_eissn"
+            result,
+            "Error in set_publisher_by_eissn / " "get_publisher_by_eissn",
         )
 
     # IssnImpact publishing test and query consult through ISSN
     def test_set_get_impact_by_issn(self):
         with patch("utils.create_engine") as mock_create_engine:
             mock_create_engine.return_value = Mock()
-            self.orm.set_impact_by_issn("1234-5678", 1.0, 2022, 2.0, 2023, 3.0,
-                                        2024)
+            self.orm.set_impact_by_issn(
+                "1234-5678", 1.0, 2022, 2.0, 2023, 3.0, 2024
+            )
 
         result = self.orm.get_impact_by_issn("1234-5678")
         self.assertIsNotNone(
@@ -169,7 +176,8 @@ class TestSqlAlchemyORM(unittest.TestCase):
         self.orm.save(documents)
 
         result_issn_without_publisher = (
-            self.orm.get_all_issn_without_publisher())
+            self.orm.get_all_issn_without_publisher()
+        )
         expected_result = [("EID3", "ISSN3", "EISSN3")]
         self.assertEqual(
             result_issn_without_publisher,
@@ -210,8 +218,9 @@ class TestSqlAlchemyORM(unittest.TestCase):
         self.orm.set_continent(continents)
 
         result = list(self.orm.get_empty_continents())
-        self.assertEqual(result, ["Country4"], "Error in "
-                                               "get_empty_continents")
+        self.assertEqual(
+            result, ["Country4"], "Error in " "get_empty_continents"
+        )
 
     # DoiEurl publication test
     def test_set_doi_eurl(self):
@@ -259,8 +268,10 @@ class TestSqlAlchemyORM(unittest.TestCase):
         try:
             result = self.orm.get_empty_openaccess()
             if result is not None:
-                self.assertEqual(result, ["EID5"], "Error in "
-                                                   "get_empty_openaccess")
+                self.assertEqual(
+                    result, ["EID5"], "Error in "
+                                      "get_empty_openaccess"
+                )
 
             self.orm.set_openaccess("EID5", "openaccess")
         except (NameError, CompileError, SystemExit):
