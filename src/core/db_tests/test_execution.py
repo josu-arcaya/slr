@@ -10,8 +10,16 @@ from sqlalchemy.orm import sessionmaker
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from crud import SqlAlchemyORM
 from database import Database
-from models import (Base, Continent, Document, DoiEurl, EissnPublisher,
-                    IssnImpact, IssnPublisher, Publisher)
+from models import (
+    Base,
+    Continent,
+    Document,
+    DoiEurl,
+    EissnPublisher,
+    IssnImpact,
+    IssnPublisher,
+    Publisher,
+)
 
 
 class TestSqlAlchemyORM(unittest.TestCase):

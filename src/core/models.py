@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Date, Float, Integer, String
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, Date, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
@@ -52,6 +52,8 @@ class Document(Base):
     source = Column(String)
     affiliation_country = Column(String)
     citedby_count = Column(Integer)
+    openaccess = Column(String)
+    study_selection = relationship("StudySelection")
 
 
 class DoiEurl(Base):
@@ -103,3 +105,11 @@ class Journal(Base):
     citeScoreTrackerYear = Column(Date)
     sjrMetric = Column(Float)
     sjrYear = Column(Integer)
+
+
+class StudySelection(Base):
+    __tablename__ = "studyselection"
+    id = Column(Integer, primary_key=True)
+    status = Column(Integer)
+    id_document = Column(Integer, ForeignKey("documents.id_document"))
+    document = relationship("Document")

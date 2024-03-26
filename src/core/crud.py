@@ -2,8 +2,15 @@ import logging
 from datetime import datetime
 
 from database import Database
-from models import (Continent, Document, DoiEurl, EissnPublisher, IssnImpact,
-                    IssnPublisher)
+from models import (
+    Continent,
+    Document,
+    DoiEurl,
+    EissnPublisher,
+    IssnImpact,
+    IssnPublisher,
+    StudySelection,
+)
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
@@ -127,6 +134,7 @@ class SqlAlchemyORM:
                         source=doc[13],
                         affiliation_country=doc[14],
                         citedby_count=doc[15],
+                        openacces=doc[16],
                     )
                     sess.add(document)
                 sess.commit()
@@ -257,36 +265,32 @@ class SqlAlchemyORM:
             sess.commit()
 
     def get_empty_openaccess(self):
-        # This function gets documents without open access
+        # This function gets documents without openaccess
         # and with status 3 in StudySelection
         with self.db.get_session() as sess:
             subquery = (
-                # StudySelection is not defined,
-                # the model currently does not exist.
                 sess.query(StudySelection.id_document)
                 .filter(StudySelection.status == 3)
                 .subquery()
             )
 
-            documents_alias = aliased(Document)
+            doc = aliased(Document)
 
             result = (
-                sess.query(documents_alias.eid)
+                sess.query(doc.eid)
                 .join(
                     subquery,
-                    documents_alias.id_document.__eq__(subquery),
+                    doc.id_document.__eq__(subquery),
                 )
-                .filter(documents_alias.openaccess.is_(None))
+                .filter(doc.openaccess.is_(None))
                 .all()
             )
 
             return [(row[0]) for row in result]
 
-    # Currently the following function will not work
-    # because the openaccess field does not exist in the document.
     def set_openaccess(self, eid: str, openaccess: str):
-        # This function updates the 'openaccess'
-        # field of a document in the database.
+        # This method updates the "openaccess field of
+        # a document in the database.
         with self.db.get_session() as sess:
             try:
                 stmt = (
@@ -299,4 +303,31 @@ class SqlAlchemyORM:
                 LOGGER.info("Field openaccess updated successfully")
             except Exception as error:
                 LOGGER.error(f"Failed to update openaccess, {error}.")
+                exit(-1)
+
+    def set_status_studyselection(self, document_id: int, status: int):
+        # Este método actualiza el estado de la selección de estudio
+        # relacionado con un documento en la base de datos.
+        with self.db.get_session() as sess:
+            try:
+                study_selection = (
+                    sess.query(StudySelection)
+                    .filter_by(id_document=document_id)
+                    .first()
+                )
+
+                if study_selection:
+                    study_selection.status = status
+                    sess.commit()
+                    LOGGER.info(
+                        "Status of study selection updated successfully"
+                    )
+                else:
+                    LOGGER.error(
+                        "Study selection not found for the given document ID"
+                    )
+            except Exception as error:
+                LOGGER.error(
+                    f"Failed to update status of study selection, {error}."
+                )
                 exit(-1)
