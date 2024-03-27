@@ -1,32 +1,14 @@
 import abc
 import logging
 import os
-import pycurl
+import sqlite3 as sl
+from io import BytesIO
 
 import psycopg2 as ps
-import sqlite3 as sl
 import pycountry_convert as pc
-
-from io import BytesIO
-from collections import namedtuple
+import pycurl
+from models import Journal
 from ratelimiter import RateLimiter
-from datetime import datetime
-
-from sqlalchemy import create_engine, MetaData, select
-from sqlalchemy.orm import sessionmaker, Session, aliased
-from sqlalchemy.exc import IntegrityError
-from models import Base, Publisher, IssnPublisher, EissnPublisher, IssnImpact, Document, DoiEurl, Continent, \
-    AggregatedPublisher, Manuscript, Journal
-
-Manuscript = namedtuple(
-    "Manuscript",
-    "title abstract keywords author published_date doi eid publication_name issn eissn type sub_type search_query source, affiliation_country, citedby_count",
-)
-
-Journal = namedtuple(
-    "Journal",
-    "issn citeScoreCurrentMetric citeScoreCurrentMetricYear citeScoreTracker citeScoreTrackerYear sjrMetric sjrYear",
-)
 
 LOGGER = logging.getLogger("systematic")
 
@@ -57,21 +39,20 @@ class Postgres(Persistence):
         Persistence.__init__(self, database)
 
         if (
-                os.getenv("DB_USER") is None
-                or os.getenv("DB_HOST") is None
-                or os.getenv("DB_PASS") is None
+            os.getenv("DB_USER") is None
+            or os.getenv("DB_HOST") is None
+            or os.getenv("DB_PASS") is None
         ):
             logging.error(
-                "Please define DB_USER, DB_HOST and DB_PASS environment variables."
+                "Please define DB_USER, DB_HOST and DB_PASS environment "
+                "variables."
             )
             exit(-1)
-
         self._user = os.getenv("DB_USER")
         self._host = os.getenv("DB_HOST")
         self._password = os.getenv("DB_PASS")
 
     def save(self, documents):
-
         connection = None
         try:
             connection = ps.connect(
@@ -81,12 +62,13 @@ class Postgres(Persistence):
                 port="5432",
                 database=self._database,
             )
-
             cursor = connection.cursor()
-            sql = """ INSERT INTO documents (title, abstract, keywords, author, published_date, doi, eid, publication_name, issn, eissn, type, sub_type, search_query, source)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING;"""
+            sql = """ INSERT INTO documents (title, abstract, keywords, author,
+             published_date, doi, eid, publication_name, issn, eissn, type,
+              sub_type, search_query, source) VALUES
+              (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+              ON CONFLICT DO NOTHING;"""
             cursor.executemany(sql, documents)
-
             connection.commit()
             LOGGER.info("Record inserted successfully")
         except Exception as error:
@@ -100,58 +82,65 @@ class Postgres(Persistence):
 class Sqlite(Persistence):
     def __init__(self, database="prod"):
         super().__init__(database=database)
-
         # self._db_name = f"publishers_{database}.db"
-        self._db_name = f"documents.db"
+        self._db_name = "documents.db"
         # self.__create_database()
-
         self._con = sl.connect(self._db_name)
 
     def __create_database(self):
         if not os.path.isfile(self._db_name):
             conn = sl.connect(self._db_name)
-
             with conn:
-                sql = """CREATE TABLE publisher (id_document INTEGER PRIMARY KEY, publisher TEXT NOT NULL);"""
+                sql = """CREATE TABLE publisher (id_document
+                INTEGER PRIMARY KEY, publisher TEXT NOT NULL);"""
                 conn.execute(sql)
-
             with conn:
-                sql = """CREATE TABLE issn_publisher (issn TEXT NOT NULL PRIMARY KEY, publisher TEXT NOT NULL);"""
+                sql = """CREATE TABLE issn_publisher (issn TEXT NOT NULL
+                PRIMARY KEY, publisher TEXT NOT NULL);"""
                 conn.execute(sql)
-
             with conn:
-                sql = """CREATE TABLE eissn_publisher (eissn TEXT NOT NULL PRIMARY KEY, publisher TEXT NOT NULL);"""
+                sql = """CREATE TABLE eissn_publisher (eissn TEXT NOT NULL
+                PRIMARY KEY, publisher TEXT NOT NULL);"""
                 conn.execute(sql)
-
             with conn:
-                sql = """CREATE TABLE issn_impact (issn TEXT NOT NULL PRIMARY KEY, citeScoreCurrentMetric REAL NOT NULL,
-                    citeScoreCurrentMetricYear INT NOT NULL, citeScoreTracker REAL NOT NULL, citeScoreTrackerYear INT NOT NULL,
-                    sjrMetric REAL NOT NULL, sjrYear INT NOT NULL);"""
+                sql = """CREATE TABLE issn_impact (issn TEXT NOT NULL PRIMARY
+                KEY, citeScoreCurrentMetric REAL NOT
+                NULL, citeScoreCurrentMetricYear INT NOT NULL,
+                citeScoreTracker REAL NOT NULL, citeScoreTrackerYear
+                INT NOT NULL, sjrMetric REAL NOT NULL,
+                sjrYear INT NOT NULL);"""
                 conn.execute(sql)
-
             with conn:
-                sql = """CREATE TABLE documents (id_document INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,abstract TEXT,
-                    keywords TEXT,author TEXT,published_date DATE,doi TEXT UNIQUE,eid TEXT UNIQUE,publication_name TEXT,
-                    issn TEXT,eissn TEXT,type TEXT,sub_type TEXT,search_query TEXT,source TEXT, affiliation_country TEXT, citedby_count INT);"""
+                sql = """CREATE TABLE documents (id_document INTEGER PRIMARY
+                KEY AUTOINCREMENT,title TEXT,abstract
+                TEXT, keywords TEXT,author TEXT,published_date DATE,doi TEXT
+                UNIQUE,eid TEXT UNIQUE,publication_name
+                TEXT, issn TEXT,eissn TEXT,type TEXT,sub_type TEXT,
+                search_query TEXT,source TEXT, affiliation_country
+                TEXT, citedby_count INT);"""
                 conn.execute(sql)
-
             with conn:
-                sql = """CREATE TABLE IF NOT EXISTS doi_eurl (doi TEXT NOT NULL, eurl TEXT NOT NULL);"""
+                sql = """CREATE TABLE IF NOT EXISTS doi_eurl
+                (doi TEXT NOT NULL, eurl TEXT NOT NULL);"""
                 conn.execute(sql)
-
             with conn:
-                sql = """CREATE TABLE IF NOT EXISTS continents (affiliation_country TEXT PRIMARY KEY, continent TEXT NOT NULL);"""
+                sql = """CREATE TABLE IF NOT EXISTS continents
+                (affiliation_country TEXT PRIMARY KEY, continent TEXT
+                NOT NULL);"""
                 conn.execute(sql)
-
         conn = sl.connect(self._db_name)
         with conn:
-            sql = """CREATE TABLE IF NOT EXISTS aggregated_publisher (publisher TEXT NOT NULL, aggregated_publisher TEXT NOT NULL);"""
+            sql = """CREATE TABLE IF NOT EXISTS aggregated_publisher
+            (publisher TEXT NOT NULL, aggregated_publisher
+            TEXT NOT NULL);"""
             conn.execute(sql)
 
     def get_impact_by_issn(self, issn: str):
         with self._con:
             data = self._con.execute(
-                "SELECT citeScoreCurrentMetric, citeScoreCurrentMetricYear, citeScoreTracker, citeScoreTrackerYear, sjrMetric, sjrYear FROM issn_impact WHERE issn=?",
+                "SELECT citeScoreCurrentMetric, citeScoreCurrentMetricYear, "
+                "citeScoreTracker, citeScoreTrackerYear, "
+                "sjrMetric, sjrYear FROM issn_impact WHERE issn=?",
                 (issn,),
             )
             for row in data:
@@ -167,14 +156,14 @@ class Sqlite(Persistence):
                 return j
 
     def set_impact_by_issn(
-            self,
-            issn: str,
-            citeScoreCurrentMetric: float,
-            citeScoreCurrentMetricYear: int,
-            citeScoreTracker: float,
-            citeScoreTrackerYear: int,
-            sjrMetric: float,
-            sjrYear: int,
+        self,
+        issn: str,
+        citeScoreCurrentMetric: float,
+        citeScoreCurrentMetricYear: int,
+        citeScoreTracker: float,
+        citeScoreTrackerYear: int,
+        sjrMetric: float,
+        sjrYear: int,
     ):
         with self._con:
             data = (
@@ -186,8 +175,10 @@ class Sqlite(Persistence):
                 sjrMetric,
                 sjrYear,
             )
-            sql = """INSERT OR IGNORE INTO issn_impact (issn, citeScoreCurrentMetric, citeScoreCurrentMetricYear, citeScoreTracker, citeScoreTrackerYear, sjrMetric, sjrYear)
-                VALUES (?, ?, ?, ?, ?, ?, ?)"""
+            sql = """INSERT OR IGNORE INTO issn_impact
+            (issn, citeScoreCurrentMetric, citeScoreCurrentMetricYear,
+            citeScoreTracker, citeScoreTrackerYear, sjrMetric, sjrYear)
+            VALUES (?, ?, ?, ?, ?, ?, ?)"""
             self._con.execute(sql, data)
 
     def get_publisher_by_issn(self, issn: str):
@@ -202,7 +193,8 @@ class Sqlite(Persistence):
         with self._con:
             data = (issn, publisher)
             self._con.execute(
-                "INSERT OR IGNORE INTO issn_publisher (issn, publisher) VALUES (?, ?)",
+                "INSERT OR IGNORE INTO issn_publisher "
+                "(issn, publisher) VALUES (?, ?)",
                 data,
             )
 
@@ -218,15 +210,19 @@ class Sqlite(Persistence):
         with self._con:
             data = (eissn, publisher)
             self._con.execute(
-                "INSERT OR IGNORE INTO eissn_publisher (eissn, publisher) VALUES (?, ?)",
+                "INSERT OR IGNORE INTO eissn_publisher "
+                "(eissn, publisher) VALUES (?, ?)",
                 data,
             )
 
     def save(self, documents):
         with self._con:
             try:
-                sql = """ INSERT OR IGNORE INTO documents (title, abstract, keywords, author, published_date, doi, eid, publication_name, issn, eissn, type, sub_type, search_query, source, affiliation_country, citedby_count)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"""
+                sql = """INSERT OR IGNORE INTO documents
+                (title, abstract, keywords, author, published_date, doi,
+                eid, publication_name, issn, eissn,
+                type, sub_type, search_query, source, affiliation_country,
+                citedby_count) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"""
                 self._con.executemany(sql, documents)
 
                 LOGGER.info("Document inserted successfully")
@@ -284,8 +280,9 @@ class Sqlite(Persistence):
         with self._con:
             sql = """
                 SELECT DISTINCT d.affiliation_country FROM documents d
-                LEFT JOIN continents c ON d.affiliation_country = c.affiliation_country
-                WHERE c.continent IS NULL AND d.affiliation_country IS NOT NULL
+                LEFT JOIN continents c ON d.affiliation_country =
+                 c.affiliation_country WHERE c.continent IS NULL AND
+                 d.affiliation_country IS NOT NULL
                 """
             data = self._con.execute(sql)
             for row in data:
@@ -295,8 +292,8 @@ class Sqlite(Persistence):
         with self._con:
             try:
                 sql = """
-                    INSERT OR IGNORE INTO continents (affiliation_country, continent)
-                    VALUES (?, ?)
+                    INSERT OR IGNORE INTO continents
+                    (affiliation_country, continent) VALUES (?, ?)
                     """
                 self._con.executemany(sql, tuples)
                 LOGGER.info("Continent inserted successfully")
@@ -328,8 +325,8 @@ class Sqlite(Persistence):
         with self._con:
             sql = """
                 SELECT d.eid
-                FROM study_selection ss 
-                INNER JOIN documents d ON d.id_document = ss.id_document 
+                FROM study_selection ss
+                INNER JOIN documents d ON d.id_document = ss.id_document
                 WHERE  d.openaccess IS NULL
                 AND ss.status = 3
                 """
@@ -356,7 +353,9 @@ class Sqlite(Persistence):
 class Location:
     def country_to_continent(self, country_name):
         country_alpha2 = pc.country_name_to_country_alpha2(country_name)
-        country_continent_code = pc.country_alpha2_to_continent_code(country_alpha2)
+        country_continent_code = pc.country_alpha2_to_continent_code(
+            country_alpha2
+        )
         country_continent_name = pc.convert_continent_code_to_continent_name(
             country_continent_code
         )

@@ -1,16 +1,12 @@
-import enum
 import logging
-from tkinter import SEPARATOR
-from tkinter.ttk import Separator
-from pywaffle import Waffle
 
 import geopandas
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from pywaffle import Waffle
 
 LOGGER = logging.getLogger("systematic")
 
@@ -65,22 +61,22 @@ class Plotter:
 
     def plot_waffle_type(self):
         data = {"Journal Article": 32, "Conference Paper": 45}
-        fig = plt.figure(
+        plt.figure(
             FigureClass=Waffle,
             rows=5,
             values=data,
             colors=("#232066", "#983D3D"),
             legend={
-                'loc': 'lower center',
-                'bbox_to_anchor': (0, -0.4),
-                'ncol': len(data),
+                "loc": "lower center",
+                "bbox_to_anchor": (0, -0.4),
+                "ncol": len(data),
             },
             icons="book",
             icon_size=18,
             icon_legend=True,
         )
         plt.savefig("/tmp/fig_type.svg")
-        #plt.show()
+        # plt.show()
 
     def plot_continent(self):
         self.__df.groupby(["continent"]).size().plot.pie(
@@ -107,20 +103,27 @@ class Plotter:
         world.plot(column="publications", legend=True, ax=ax, cax=cax)
         plt.tight_layout()
         plt.savefig("/tmp/fig_geo_continent.svg")
-        #plt.show()
+        # plt.show()
 
     def plot_publisher(self):
         print(self.__df.groupby(["publisher"]).size().head(10))
         cmap = "summer"
         # cmap = "Wistia"
-        to_replace = {"John Wiley": "Others", "MDPI": "Others", "Elsevier": "Others"}
-        self.__df["publisher"] = self.__df["publisher"].replace(to_replace=to_replace)
+        to_replace = {
+            "John Wiley": "Others",
+            "MDPI": "Others",
+            "Elsevier": "Others",
+        }
+        self.__df["publisher"] = self.__df["publisher"].replace(
+            to_replace=to_replace
+        )
         self.__df.groupby(["year", "publisher"]).size().unstack().plot.bar(
             stacked=True, figsize=(6, 4), cmap=cmap, legend=False
         )
         # handles, labels = plt.gca().get_legend_handles_labels()
         # order = [1,2,0,3]
-        # plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+        # plt.legend([handles[idx] for idx in order],
+        # [labels[idx] for idx in order])
         plt.legend(loc="upper left")
         plt.xlabel("")
         plt.ylabel("Studies included in the review")
@@ -131,14 +134,16 @@ class Plotter:
 
         color = "royalblue"
         axes2 = plt.twinx()
-        axes2.plot(x, y, color=color, label="Sine", marker="s", linestyle="dashed")
+        axes2.plot(
+            x, y, color=color, label="Sine", marker="s", linestyle="dashed"
+        )
         axes2.set_ylabel("Records initially identified", color=color)
         axes2.tick_params(axis="y", labelcolor=color)
         axes2.set_ylim(ymin=0)
 
         plt.tight_layout()
 
-        #plt.show()
+        # plt.show()
         plt.savefig("/tmp/fig_publisher.pdf")
 
     def plot_keywords(self):
@@ -163,7 +168,7 @@ class Plotter:
             # print(i * step)
 
         G = nx.Graph()
-        fig = plt.figure(1, figsize=(8, 4.8))
+        plt.figure(1, figsize=(8, 4.8))
 
         options = {"edgecolors": "tab:gray", "node_size": 200, "alpha": 1.0}
         nx.draw_networkx_nodes(
@@ -174,7 +179,11 @@ class Plotter:
             **options
         )
         nx.draw_networkx_nodes(
-            G, nodelist=keywords[1].split(","), node_color="tab:red", pos=pos, **options
+            G,
+            nodelist=keywords[1].split(","),
+            node_color="tab:red",
+            pos=pos,
+            **options
         )
         nx.draw_networkx_nodes(
             G,

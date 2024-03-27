@@ -1,13 +1,16 @@
-#!/usr/bin/env python
-
 import argparse
 import itertools
 import logging
 import os
 
-from slr.src.core import Scopus
-from slr.src.core import Persistence, Sqlite, Location, Editorial
-from slr.src.core import Plotter
+from slr.src.core import (
+    Editorial,
+    Location,
+    Persistence,
+    Plotter,
+    Scopus,
+    Sqlite,
+)
 
 LOGGER = logging.getLogger("systematic")
 
@@ -70,7 +73,9 @@ def count_search_queries():
 
     with open("/tmp/search_terms_results.csv", "a") as f:
         for i, s in enumerate(search_queries):
-            LOGGER.warning(f"Counting elements for query {i} out of {total_queries}.")
+            LOGGER.warning(
+                f"Counting elements for query {i} out of {total_queries}."
+            )
             q = Scopus(persistence=Persistence, search_query=s)
             total_results = q.get_count()
             f.write(str(i) + "," + s + "," + total_results + "\n")
@@ -80,7 +85,11 @@ def main():
     text = "This application queries different academic engines."
     parser = argparse.ArgumentParser(description=text)
     parser.add_argument(
-        "-s", "--scopus", action="store_true", help="Query Scopus.", required=False
+        "-s",
+        "--scopus",
+        action="store_true",
+        help="Query Scopus.",
+        required=False,
     )
     parser.add_argument(
         "-c",
@@ -144,7 +153,6 @@ def main():
     if args.scopus:
         query_scopus()
 
-
     if args.fill_publisher:
         pass
         # Scopus(persistence=Sqlite, search_query="None").fill_publishers()
@@ -152,13 +160,13 @@ def main():
     if args.fill_continent:
         LOGGER.info("About to populate empty continents")
         s = Sqlite()
-        l = Location()
+        loc = Location()
         for affiliation_country in s.get_empty_continents():
             try:
-                continent = l.country_to_continent(affiliation_country)
+                continent = loc.country_to_continent(affiliation_country)
                 tuples = [(affiliation_country, continent)]
                 s.set_continent(tuples=tuples)
-            except KeyError as e:
+            except KeyError:
                 LOGGER.error(f"Cannot get continent for {affiliation_country}")
 
     if args.fill_editorial:
