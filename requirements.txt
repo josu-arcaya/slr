@@ -4,7 +4,6 @@ datetime
 flake8
 geopandas
 isort
-logging
 networkx
 pip-chill
 psycopg2
