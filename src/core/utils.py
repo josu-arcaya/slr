@@ -38,15 +38,8 @@ class Postgres(Persistence):
     def __init__(self, database="prod"):
         Persistence.__init__(self, database)
 
-        if (
-            os.getenv("DB_USER") is None
-            or os.getenv("DB_HOST") is None
-            or os.getenv("DB_PASS") is None
-        ):
-            logging.error(
-                "Please define DB_USER, DB_HOST and DB_PASS environment "
-                "variables."
-            )
+        if os.getenv("DB_USER") is None or os.getenv("DB_HOST") is None or os.getenv("DB_PASS") is None:
+            logging.error("Please define DB_USER, DB_HOST and DB_PASS environment " "variables.")
             exit(-1)
         self._user = os.getenv("DB_USER")
         self._host = os.getenv("DB_HOST")
@@ -183,9 +176,7 @@ class Sqlite(Persistence):
 
     def get_publisher_by_issn(self, issn: str):
         with self._con:
-            data = self._con.execute(
-                "SELECT publisher FROM issn_publisher WHERE issn=?", (issn,)
-            )
+            data = self._con.execute("SELECT publisher FROM issn_publisher WHERE issn=?", (issn,))
             for row in data:
                 return row[0]
 
@@ -193,16 +184,13 @@ class Sqlite(Persistence):
         with self._con:
             data = (issn, publisher)
             self._con.execute(
-                "INSERT OR IGNORE INTO issn_publisher "
-                "(issn, publisher) VALUES (?, ?)",
+                "INSERT OR IGNORE INTO issn_publisher " "(issn, publisher) VALUES (?, ?)",
                 data,
             )
 
     def get_publisher_by_eissn(self, eissn: str):
         with self._con:
-            data = self._con.execute(
-                "SELECT publisher FROM eissn_publisher WHERE eissn=?", (eissn,)
-            )
+            data = self._con.execute("SELECT publisher FROM eissn_publisher WHERE eissn=?", (eissn,))
             for row in data:
                 return row[0]
 
@@ -210,8 +198,7 @@ class Sqlite(Persistence):
         with self._con:
             data = (eissn, publisher)
             self._con.execute(
-                "INSERT OR IGNORE INTO eissn_publisher "
-                "(eissn, publisher) VALUES (?, ?)",
+                "INSERT OR IGNORE INTO eissn_publisher " "(eissn, publisher) VALUES (?, ?)",
                 data,
             )
 
@@ -353,12 +340,8 @@ class Sqlite(Persistence):
 class Location:
     def country_to_continent(self, country_name):
         country_alpha2 = pc.country_name_to_country_alpha2(country_name)
-        country_continent_code = pc.country_alpha2_to_continent_code(
-            country_alpha2
-        )
-        country_continent_name = pc.convert_continent_code_to_continent_name(
-            country_continent_code
-        )
+        country_continent_code = pc.country_alpha2_to_continent_code(country_alpha2)
+        country_continent_name = pc.convert_continent_code_to_continent_name(country_continent_code)
         return country_continent_name
 
 

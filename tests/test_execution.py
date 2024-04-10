@@ -7,9 +7,7 @@ from unittest.mock import Mock, patch
 from crud import SqlAlchemyORM
 from models import DoiEurl
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
-)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
 
 logging.basicConfig(level=logging.INFO)
@@ -29,15 +27,11 @@ class TestSqlAlchemyORM(unittest.TestCase):
     def test_init(self):
         self.assertIsNotNone(
             self.orm.db._engine,
-            "Error in __init__: "
-            "'Engine' has not been correctly "
-            "initialized",
+            "Error in __init__: " "'Engine' has not been correctly " "initialized",
         )
         self.assertIsNotNone(
             self.orm.db._Session,
-            "Error in __init__: "
-            "'Session' has not been correctly "
-            "initialized",
+            "Error in __init__: " "'Session' has not been correctly " "initialized",
         )
 
     def test_get_session(self):
@@ -54,9 +48,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
             self.orm.set_publisher_by_issn("1234-5678", "Publisher")
 
         result = self.orm.get_publisher_by_issn("1234-5678")
-        self.assertIsNotNone(
-            result, "Error in set_publisher_by_issn / " "get_publisher_by_issn"
-        )
+        self.assertIsNotNone(result, "Error in set_publisher_by_issn / " "get_publisher_by_issn")
 
     # EissnPublisher publishing and query test
     def test_set_get_publisher_by_eissn(self):
@@ -74,14 +66,10 @@ class TestSqlAlchemyORM(unittest.TestCase):
     def test_set_get_impact_by_issn(self):
         with patch("sqlalchemy.create_engine") as mock_create_engine:
             mock_create_engine.return_value = Mock()
-            self.orm.set_impact_by_issn(
-                "1234-5678", 1.0, 2022, 2.0, 2023, 3.0, 2024
-            )
+            self.orm.set_impact_by_issn("1234-5678", 1.0, 2022, 2.0, 2023, 3.0, 2024)
 
         result = self.orm.get_impact_by_issn("1234-5678")
-        self.assertIsNotNone(
-            result, "Error in set_impact_by_issn / " "get_impact_by_issn"
-        )
+        self.assertIsNotNone(result, "Error in set_impact_by_issn / " "get_impact_by_issn")
 
     # Document publishing test and doi query in existing documents
     def test_save_and_get_doi(self):
@@ -144,10 +132,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
                 "Error in " "set_publisher / get_empty_publisher",
             )
         except AssertionError:
-            LOGGER.error(
-                "Error in set_empty_publisher. The editor can't be "
-                "null: (publisher = Column(nullable=False))\n"
-            )
+            LOGGER.error("Error in set_empty_publisher. The editor can't be " "null: (publisher = Column(nullable=False))\n")
 
     # Test of ISSN query of publishers without an assigned value in
     # IssnPublisher
@@ -175,9 +160,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
         ]
         self.orm.save(documents)
 
-        result_issn_without_publisher = (
-            self.orm.get_all_issn_without_publisher()
-        )
+        result_issn_without_publisher = self.orm.get_all_issn_without_publisher()
         expected_result = [("EID3", "ISSN3", "EISSN3")]
         self.assertEqual(
             result_issn_without_publisher,
@@ -219,9 +202,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
         self.orm.set_continent(continents)
 
         result = list(self.orm.get_empty_continents())
-        self.assertEqual(
-            result, ["Country4"], "Error in " "get_empty_continents"
-        )
+        self.assertEqual(result, ["Country4"], "Error in " "get_empty_continents")
 
     # DoiEurl publication test
     def test_set_doi_eurl(self):
@@ -279,9 +260,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
             )
 
             result_after_update_status = self.orm.get_empty_status()
-            self.assertNotIn(
-                "EID5", result_after_update_status, "Error in set_status"
-            )
+            self.assertNotIn("EID5", result_after_update_status, "Error in set_status")
 
             result_openaccess_before = self.orm.get_empty_openaccess()
             if result_openaccess_before is not None:
@@ -291,9 +270,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
                     "Error in get_empty_openaccess",
                 )
         except Exception as error:
-            LOGGER.error(
-                f"Error in test_set_get_empty_openaccess_status. {error}\n"
-            )
+            LOGGER.error(f"Error in test_set_get_empty_openaccess_status. {error}\n")
 
     @classmethod
     def tearDownClass(cls):

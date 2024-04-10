@@ -26,18 +26,13 @@ class SqlAlchemyORM:
         # This function gets the impact by ISSN
         with self.db.get_session() as sess:
             issn_impact_alias = aliased(IssnImpact)
-            result = (
-                sess.query(issn_impact_alias)
-                .filter(issn_impact_alias.issn == issn)
-                .first()
-            )
+            result = sess.query(issn_impact_alias).filter(issn_impact_alias.issn == issn).first()
 
             if result:
                 return {
                     "issn": result.issn,
                     "citeScoreCurrentMetric": result.citeScoreCurrentMetric,
-                    "citeScoreCurrentMetricYear":
-                        result.citeScoreCurrentMetricYear,
+                    "citeScoreCurrentMetricYear": result.citeScoreCurrentMetricYear,
                     "citeScoreTracker": result.citeScoreTracker,
                     "citeScoreTrackerYear": result.citeScoreTrackerYear,
                     "sjrMetric": result.sjrMetric,
@@ -73,9 +68,7 @@ class SqlAlchemyORM:
     def get_publisher_by_issn(self, issn: str):
         # This function gets the publisher by ISSN
         with self.db.get_session() as sess:
-            result = sess.execute(
-                select(IssnPublisher).filter_by(issn=issn)
-            ).first()
+            result = sess.execute(select(IssnPublisher).filter_by(issn=issn)).first()
             if result:
                 return {
                     "issn": result[0].issn,
@@ -94,9 +87,7 @@ class SqlAlchemyORM:
     def get_publisher_by_eissn(self, eissn: str):
         # This function gets the publisher by EISSN
         with self.db.get_session() as sess:
-            result = sess.execute(
-                select(EissnPublisher).filter_by(eissn=eissn)
-            ).first()
+            result = sess.execute(select(EissnPublisher).filter_by(eissn=eissn)).first()
             if result:
                 return {
                     "eissn": result[0].eissn,
@@ -201,9 +192,7 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             try:
                 for publisher in publishers:
-                    issn_publisher = IssnPublisher(
-                        issn=publisher[0], publisher=publisher[1]
-                    )
+                    issn_publisher = IssnPublisher(issn=publisher[0], publisher=publisher[1])
                     sess.add(issn_publisher)
                 sess.commit()
                 LOGGER.info("Publisher inserted successfully")
@@ -219,9 +208,7 @@ class SqlAlchemyORM:
                 sess.query(Document.affiliation_country.distinct())
                 .outerjoin(
                     Continent,
-                    Document.affiliation_country.__eq__(
-                        Continent.affiliation_country
-                    ),
+                    Document.affiliation_country.__eq__(Continent.affiliation_country),
                 )
                 .filter(
                     Continent.continent.is_(None),
@@ -236,9 +223,7 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             try:
                 for tpl in tuples:
-                    continent = Continent(
-                        affiliation_country=tpl[0], continent=tpl[1]
-                    )
+                    continent = Continent(affiliation_country=tpl[0], continent=tpl[1])
                     sess.add(continent)
                 sess.commit()
                 LOGGER.info("Continent inserted successfully")
@@ -268,11 +253,7 @@ class SqlAlchemyORM:
         # This function gets documents without openaccess
         # and with status 3 in StudySelection
         with self.db.get_session() as sess:
-            subquery = (
-                sess.query(StudySelection.id_document)
-                .filter(StudySelection.status == 3)
-                .subquery()
-            )
+            subquery = sess.query(StudySelection.id_document).filter(StudySelection.status == 3).subquery()
 
             doc = aliased(Document)
 
@@ -293,11 +274,7 @@ class SqlAlchemyORM:
         # a document in the database.
         with self.db.get_session() as sess:
             try:
-                stmt = (
-                    update(Document)
-                    .where(Document.eid == eid)
-                    .values(openaccess=openaccess)
-                )
+                stmt = update(Document).where(Document.eid == eid).values(openaccess=openaccess)
                 sess.execute(stmt)
 
                 LOGGER.info("Field openaccess updated successfully")
@@ -310,24 +287,14 @@ class SqlAlchemyORM:
         # related to a document in the database.
         with self.db.get_session() as sess:
             try:
-                study_selection = (
-                    sess.query(StudySelection)
-                    .filter_by(id_document=document_id)
-                    .first()
-                )
+                study_selection = sess.query(StudySelection).filter_by(id_document=document_id).first()
 
                 if study_selection:
                     study_selection.status = status
                     sess.commit()
-                    LOGGER.info(
-                        "Status of study selection updated successfully"
-                    )
+                    LOGGER.info("Status of study selection updated successfully")
                 else:
-                    LOGGER.error(
-                        "Study selection not found for the given document ID"
-                    )
+                    LOGGER.error("Study selection not found for the given document ID")
             except Exception as error:
-                LOGGER.error(
-                    f"Failed to update status of study selection, {error}."
-                )
+                LOGGER.error(f"Failed to update status of study selection, {error}.")
                 exit(-1)
