@@ -1,14 +1,9 @@
 import logging
-import os
-import sys
 import unittest
 from unittest.mock import Mock, patch
 
-from crud import SqlAlchemyORM
-from models import DoiEurl
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
-
+from slr.src.core.crud import SqlAlchemyORM
+from slr.src.core.models import DoiEurl
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
@@ -132,7 +127,8 @@ class TestSqlAlchemyORM(unittest.TestCase):
                 "Error in " "set_publisher / get_empty_publisher",
             )
         except AssertionError:
-            LOGGER.error("Error in set_empty_publisher. The editor can't be " "null: (publisher = Column(nullable=False))\n")
+            LOGGER.error(
+                "Error in set_empty_publisher. The editor can't be " "null: (publisher = Column(nullable=False))\n")
 
     # Test of ISSN query of publishers without an assigned value in
     # IssnPublisher
@@ -250,7 +246,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
 
         try:
             self.orm.set_openaccess("EID5", "openaccess")
-            self.orm.set_status("EID5", 3)
+            self.orm.set_status_studyselection(1, 3)
 
             result_after_update_openaccess = self.orm.get_empty_openaccess()
             self.assertNotIn(
@@ -259,7 +255,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
                 "Error in set_openaccess",
             )
 
-            result_after_update_status = self.orm.get_empty_status()
+            result_after_update_status = self.orm.get_empty_openaccess()
             self.assertNotIn("EID5", result_after_update_status, "Error in set_status")
 
             result_openaccess_before = self.orm.get_empty_openaccess()
