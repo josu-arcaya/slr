@@ -2,8 +2,7 @@ import logging
 from datetime import datetime
 
 from database import Database
-from models import (Continent, Document, DoiEurl, EissnPublisher, IssnImpact,
-                    IssnPublisher, StudySelection)
+from models import Continent, Document, DoiEurl, EissnPublisher, IssnImpact, IssnPublisher, StudySelection
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
