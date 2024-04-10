@@ -10,8 +10,9 @@ from http import HTTPStatus
 import requests
 from ratelimiter import RateLimiter
 
-from src.core.query import Query
-from src.core.utils import Journal, Manuscript, Persistence, Sqlite
+from slr.src.core.query import Query
+from slr.src.core.utils import Persistence, Sqlite
+from slr.src.core.models import Journal, Manuscript
 
 LOGGER = logging.getLogger("systematic")
 

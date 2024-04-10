@@ -127,8 +127,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
                 "Error in " "set_publisher / get_empty_publisher",
             )
         except AssertionError:
-            LOGGER.error(
-                "Error in set_empty_publisher. The editor can't be " "null: (publisher = Column(nullable=False))\n")
+            LOGGER.error("Error in set_empty_publisher. The editor can't be " "null: (publisher = Column(nullable=False))\n")
 
     # Test of ISSN query of publishers without an assigned value in
     # IssnPublisher

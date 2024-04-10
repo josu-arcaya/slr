@@ -7,7 +7,7 @@ from io import BytesIO
 import psycopg2 as ps
 import pycountry_convert as pc
 import pycurl
-from models import Journal
+from slr.src.core.models import Journal
 from ratelimiter import RateLimiter
 
 LOGGER = logging.getLogger("systematic")

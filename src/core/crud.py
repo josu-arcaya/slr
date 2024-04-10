@@ -1,8 +1,8 @@
 import logging
 from datetime import datetime
 
-from database import Database
-from models import Continent, Document, DoiEurl, EissnPublisher, IssnImpact, IssnPublisher, StudySelection
+from slr.src.core.database import Database
+from slr.src.core.models import Continent, Document, DoiEurl, EissnPublisher, IssnImpact, IssnPublisher, StudySelection
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
@@ -253,7 +253,7 @@ class SqlAlchemyORM:
                 sess.query(doc.eid)
                 .join(
                     subquery,
-                    doc.id_document.__eq__(subquery),
+                    doc.id_document.__eq__(subquery.scalar_subquery()),
                 )
                 .filter(doc.openaccess.is_(None))
                 .all()

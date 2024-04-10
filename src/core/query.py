@@ -1,7 +1,7 @@
 import abc
 import logging
 
-from src.core.utils import Persistence
+from slr.src.core.utils import Persistence
 
 LOGGER = logging.getLogger("systematic")
 
