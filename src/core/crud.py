@@ -34,15 +34,15 @@ class SqlAlchemyORM:
                 return None
 
     def set_impact_by_issn(
-        # This function sets the impact by ISSN
-        self,
-        issn: str,
-        citeScoreCurrentMetric: float,
-        citeScoreCurrentMetricYear: int,
-        citeScoreTracker: float,
-        citeScoreTrackerYear: int,
-        sjrMetric: float,
-        sjrYear: int,
+            # This function sets the impact by ISSN
+            self,
+            issn: str,
+            citeScoreCurrentMetric: float,
+            citeScoreCurrentMetricYear: int,
+            citeScoreTracker: float,
+            citeScoreTrackerYear: int,
+            sjrMetric: float,
+            sjrYear: int,
     ):
         with self.db.get_session() as sess:
             issn_impact = IssnImpact(
@@ -255,7 +255,7 @@ class SqlAlchemyORM:
                     subquery,
                     doc.id_document.__eq__(subquery.scalar_subquery()),
                 )
-                .filter(doc.openaccess.is_(None))
+                .filter(doc.openaccess is None)
                 .all()
             )
 
