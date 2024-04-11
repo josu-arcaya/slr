@@ -255,7 +255,7 @@ class SqlAlchemyORM:
                     subquery,
                     doc.id_document.__eq__(subquery.scalar_subquery()),
                 )
-                .filter(doc.openaccess.is_(None))
+                .filter(doc.openaccess is None)
                 .all()
             )
 
@@ -266,7 +266,7 @@ class SqlAlchemyORM:
         # a document in the database.
         with self.db.get_session() as sess:
             try:
-                stmt = update(Document).where(Document.eid == eid).values(openaccess=openaccess)
+                stmt = update(Document).where(Document.eid.__eq__(eid)).values(openaccess=openaccess)
                 sess.execute(stmt)
 
                 LOGGER.info("Field openaccess updated successfully")

@@ -43,7 +43,9 @@ class TestSqlAlchemyORM(unittest.TestCase):
             self.orm.set_publisher_by_issn("1234-5678", "Publisher")
 
         result = self.orm.get_publisher_by_issn("1234-5678")
-        self.assertIsNotNone(result, "Error in set_publisher_by_issn / " "get_publisher_by_issn")
+        self.assertIsNotNone(
+            result, "Error in set_publisher_by_issn / " "get_publisher_by_issn"
+        )
 
     # EissnPublisher publishing and query test
     def test_set_get_publisher_by_eissn(self):
@@ -64,7 +66,9 @@ class TestSqlAlchemyORM(unittest.TestCase):
             self.orm.set_impact_by_issn("1234-5678", 1.0, 2022, 2.0, 2023, 3.0, 2024)
 
         result = self.orm.get_impact_by_issn("1234-5678")
-        self.assertIsNotNone(result, "Error in set_impact_by_issn / " "get_impact_by_issn")
+        self.assertIsNotNone(
+            result, "Error in set_impact_by_issn / " "get_impact_by_issn"
+        )
 
     # Document publishing test and doi query in existing documents
     def test_save_and_get_doi(self):
@@ -127,7 +131,10 @@ class TestSqlAlchemyORM(unittest.TestCase):
                 "Error in " "set_publisher / get_empty_publisher",
             )
         except AssertionError:
-            LOGGER.error("Error in set_empty_publisher. The editor can't be " "null: (publisher = Column(nullable=False))\n")
+            LOGGER.error(
+                "Error in set_empty_publisher. The editor can't be "
+                "null: (publisher = Column(nullable=False))\n"
+            )
 
     # Test of ISSN query of publishers without an assigned value in
     # IssnPublisher
@@ -244,26 +251,25 @@ class TestSqlAlchemyORM(unittest.TestCase):
         self.orm.save(documents)
 
         try:
-            self.orm.set_openaccess("EID5", "openaccess")
             self.orm.set_status_studyselection(1, 3)
 
-            result_after_update_openaccess = self.orm.get_empty_openaccess()
-            self.assertNotIn(
+            result_before_update = self.orm.get_empty_openaccess()
+
+            self.assertIn(
                 "EID5",
-                result_after_update_openaccess,
-                "Error in set_openaccess",
+                result_before_update,
+                "Error in get_empty_openaccess after update",
             )
 
-            result_after_update_status = self.orm.get_empty_openaccess()
-            self.assertNotIn("EID5", result_after_update_status, "Error in set_status")
+            self.orm.set_openaccess("EID5", "openaccess")
 
-            result_openaccess_before = self.orm.get_empty_openaccess()
-            if result_openaccess_before is not None:
-                self.assertEqual(
-                    result_openaccess_before,
-                    ["EID5"],
-                    "Error in get_empty_openaccess",
-                )
+            result_after_update = self.orm.get_empty_openaccess()
+            self.assertNotIn(
+                "EID5",
+                result_after_update,
+                "Error in get_empty_openaccess after openaccess update",
+            )
+
         except Exception as error:
             LOGGER.error(f"Error in test_set_get_empty_openaccess_status. {error}\n")
 
