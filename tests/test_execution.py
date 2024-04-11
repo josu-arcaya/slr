@@ -43,9 +43,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
             self.orm.set_publisher_by_issn("1234-5678", "Publisher")
 
         result = self.orm.get_publisher_by_issn("1234-5678")
-        self.assertIsNotNone(
-            result, "Error in set_publisher_by_issn / " "get_publisher_by_issn"
-        )
+        self.assertIsNotNone(result, "Error in set_publisher_by_issn / " "get_publisher_by_issn")
 
     # EissnPublisher publishing and query test
     def test_set_get_publisher_by_eissn(self):
@@ -66,9 +64,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
             self.orm.set_impact_by_issn("1234-5678", 1.0, 2022, 2.0, 2023, 3.0, 2024)
 
         result = self.orm.get_impact_by_issn("1234-5678")
-        self.assertIsNotNone(
-            result, "Error in set_impact_by_issn / " "get_impact_by_issn"
-        )
+        self.assertIsNotNone(result, "Error in set_impact_by_issn / " "get_impact_by_issn")
 
     # Document publishing test and doi query in existing documents
     def test_save_and_get_doi(self):
@@ -131,10 +127,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
                 "Error in " "set_publisher / get_empty_publisher",
             )
         except AssertionError:
-            LOGGER.error(
-                "Error in set_empty_publisher. The editor can't be "
-                "null: (publisher = Column(nullable=False))\n"
-            )
+            LOGGER.error("Error in set_empty_publisher. The editor can't be " "null: (publisher = Column(nullable=False))\n")
 
     # Test of ISSN query of publishers without an assigned value in
     # IssnPublisher
