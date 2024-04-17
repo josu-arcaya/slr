@@ -1,11 +1,13 @@
+#!/usr/bin/env python3
+
 import argparse
 import itertools
 import logging
 import os
 
-from slr.src.core.utils import Editorial, Location, Persistence, Sqlite
-from slr.src.core.plotter import Plotter
-from slr.src.core.scopus import Scopus
+from src.core.utils import Editorial, Location, Persistence, Sqlite
+from src.core.plotter import Plotter
+from src.core.scopus import Scopus
 
 LOGGER = logging.getLogger("systematic")
 

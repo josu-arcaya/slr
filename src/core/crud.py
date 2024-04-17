@@ -1,8 +1,8 @@
 import logging
 from datetime import datetime
 
-from slr.src.core.database import Database
-from slr.src.core.models import Continent, Document, DoiEurl, EissnPublisher, IssnImpact, IssnPublisher, StudySelection
+from src.core.database import Database
+from src.core.models import Continent, Document, DoiEurl, EissnPublisher, IssnImpact, IssnPublisher, StudySelection
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased

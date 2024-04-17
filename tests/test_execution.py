@@ -2,8 +2,8 @@ import logging
 import unittest
 from unittest.mock import Mock, patch
 
-from slr.src.core.crud import SqlAlchemyORM
-from slr.src.core.models import DoiEurl
+from src.core.crud import SqlAlchemyORM
+from src.core.models import DoiEurl
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
