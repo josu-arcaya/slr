@@ -21,7 +21,6 @@ class Database(AbstractDatabase):
         self._db_name = db_name
         self._engine = create_engine(f"sqlite:///{self._db_name}")
         self._Session = sessionmaker(bind=self._engine)
-        self.create_database()
 
     def get_session(self):
         """
@@ -48,7 +47,7 @@ class Database(AbstractDatabase):
             Base.metadata.create_all(self._engine)
             LOGGER.info("Database created successfully")
         else:
-            LOGGER.info("Database already created")
+            LOGGER.warning("Database already created")
 
     @property
     def engine(self):

@@ -8,9 +8,12 @@ import os
 from src.core.utils import Editorial, Location, Persistence, Sqlite
 from src.core.plotter import Plotter
 from src.core.scopus import Scopus
+from src.core.database import Database
 
 LOGGER = logging.getLogger("systematic")
 
+def init_database():
+    Database().create_database()
 
 def fill_openaccess():
     s = Sqlite()
@@ -127,6 +130,13 @@ def main():
         help="Fill openaccess.",
         required=False,
     )
+    parser.add_argument(
+        "-i",
+        "--init-database",
+        action="store_true",
+        help="Initialize DataBase.",
+        required=False,
+    )
 
     args = parser.parse_args()
 
@@ -165,6 +175,9 @@ def main():
 
     if args.fill_openaccess:
         fill_openaccess()
+
+    if args.init_database:
+        init_database()
 
 
 if __name__ == "__main__":
