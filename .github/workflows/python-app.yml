@@ -34,7 +34,7 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Lint with black
         run: |
-          black --line-length 127 --check .
+          black --check .
       - name: Sort imports with isort
         run: |
           isort .
