@@ -1,8 +1,8 @@
 import logging
 import os
 
-from src.core.abstract_database import AbstractDatabase
-from src.core.models import Base
+from core.abstract_database import AbstractDatabase
+from core.models import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 

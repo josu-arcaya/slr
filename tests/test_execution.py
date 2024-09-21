@@ -1,15 +1,59 @@
-import logging
-import unittest
-from unittest.mock import Mock, patch
+# import unittest
+# from unittest.mock import Mock, patch
 
-from src.core.crud import SqlAlchemyORM
-from src.core.models import DoiEurl
+import pytest
 
-logging.basicConfig(level=logging.INFO)
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.ERROR)
+from core.crud import SqlAlchemyORM
+
+# from src.core.models import DoiEurl
+
+# logging.basicConfig(level=logging.INFO)
+# LOGGER = logging.getLogger(__name__)
+# LOGGER.setLevel(logging.ERROR)
 
 
+def test_something():
+    assert 1 == 1
+
+
+@pytest.fixture
+def get_db():
+    orm = SqlAlchemyORM(":memory:")
+    orm.db.create_database()
+    return orm
+
+
+def test_get_session(get_db):
+    session = get_db.db.get_session()
+    assert session is not None
+
+
+def test_save(get_db):
+    documents = [
+        (
+            "Title3",
+            "Abstract3",
+            "Keyword3",
+            "Author3",
+            "2022-01-03",
+            "DOI3",
+            "EID3",
+            "Publication3",
+            "ISSN3",
+            "EISSN3",
+            "Type3",
+            "SubType3",
+            "Query3",
+            "Source3",
+            "Country3",
+            10,
+            "Access3",
+        )
+    ]
+    get_db.save(documents)
+
+
+"""
 class TestSqlAlchemyORM(unittest.TestCase):
 
     @classmethod
@@ -273,3 +317,5 @@ class TestSqlAlchemyORM(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+"""

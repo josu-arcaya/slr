@@ -5,10 +5,10 @@ import itertools
 import logging
 import os
 
-from src.core.utils import Editorial, Location, Persistence, Sqlite
-from src.core.plotter import Plotter
-from src.core.scopus import Scopus
-from src.core.database import Database
+from core.utils import Editorial, Location, Persistence, Sqlite
+from core.plotter import Plotter
+from core.scopus import Scopus
+from core.database import Database
 
 LOGGER = logging.getLogger("systematic")
 

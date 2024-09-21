@@ -13,3 +13,4 @@ pywaffle
 ratelimiter
 requests
 sqlalchemy
+pytest
