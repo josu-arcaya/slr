@@ -7,7 +7,6 @@ LOGGER = logging.getLogger("systematic")
 
 
 class Query:
-
     def __init__(self, persistence: Persistence):
         self._persistence = persistence
 

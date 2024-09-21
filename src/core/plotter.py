@@ -20,7 +20,9 @@ class Plotter:
 
     def plot_bar_type(self):
         fig, ax = plt.subplots()
-        self.__df.groupby(["year", "sub_type"]).size().unstack().plot.bar(stacked=True, ax=ax)
+        self.__df.groupby(["year", "sub_type"]).size().unstack().plot.bar(
+            stacked=True, ax=ax
+        )
         #    stacked=True, ax=ax
         # )
         ax.set_axisbelow(True)
@@ -40,7 +42,9 @@ class Plotter:
         #    stacked=True, ax=ax
         # )
         # self.__df.groupby(["sub_type"]).size().plot.bar(ax=ax)
-        self.__df.groupby(["sub_type"]).size().plot.pie(ax=ax, cmap="summer", legend=True)
+        self.__df.groupby(["sub_type"]).size().plot.pie(
+            ax=ax, cmap="summer", legend=True
+        )
         #    stacked=True, ax=ax
         # )
         ax.set_axisbelow(True)
@@ -91,7 +95,9 @@ class Plotter:
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.1)
         # print(self.__df.groupby(["continent"]).size().head())
-        world = geopandas.read_file(geopandas.datasets.get_path("naturalearth_lowres")).dissolve(by="continent", aggfunc="sum")
+        world = geopandas.read_file(
+            geopandas.datasets.get_path("naturalearth_lowres")
+        ).dissolve(by="continent", aggfunc="sum")
         publications = [0, np.nan, 16, 39, 20, 2, 0, 0]
         world["publications"] = publications
         world.plot(column="publications", legend=True, ax=ax, cax=cax)
@@ -161,9 +167,23 @@ class Plotter:
         plt.figure(1, figsize=(8, 4.8))
 
         options = {"edgecolors": "tab:gray", "node_size": 200, "alpha": 1.0}
-        nx.draw_networkx_nodes(G, nodelist=keywords[0].split(","), node_color="tab:blue", pos=pos, **options)
-        nx.draw_networkx_nodes(G, nodelist=keywords[1].split(","), node_color="tab:red", pos=pos, **options)
-        nx.draw_networkx_nodes(G, nodelist=keywords[2].split(","), node_color="tab:green", pos=pos, **options)
+        nx.draw_networkx_nodes(
+            G,
+            nodelist=keywords[0].split(","),
+            node_color="tab:blue",
+            pos=pos,
+            **options,
+        )
+        nx.draw_networkx_nodes(
+            G, nodelist=keywords[1].split(","), node_color="tab:red", pos=pos, **options
+        )
+        nx.draw_networkx_nodes(
+            G,
+            nodelist=keywords[2].split(","),
+            node_color="tab:green",
+            pos=pos,
+            **options,
+        )
         nx.draw_networkx_edges(G, pos, width=1.0, alpha=0.5)
 
         edgelist = []

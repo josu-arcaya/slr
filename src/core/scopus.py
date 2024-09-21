@@ -48,7 +48,9 @@ class Scopus(Query):
         for _ in range(10):
             try:
                 response = urllib.request.urlopen(request, timeout=300)
-                LOGGER.info(f"{response.getheader('X-RateLimit-Remaining')} " f"requests left.")
+                LOGGER.info(
+                    f"{response.getheader('X-RateLimit-Remaining')} " f"requests left."
+                )
                 return response
             except socket.timeout as e:
                 LOGGER.error(f"Error while opening url, error = {e}")
@@ -61,7 +63,10 @@ class Scopus(Query):
 
     @RateLimiter(max_calls=2, period=1)
     def get_publisher_by_eid(self, eid: str):
-        url = f"https://api.elsevier.com/content/abstract/eid/{eid}" f"?apiKey={self._api_key}"
+        url = (
+            f"https://api.elsevier.com/content/abstract/eid/{eid}"
+            f"?apiKey={self._api_key}"
+        )
 
         response = self.stubborn_url_open(url=url)
         json_response = json.loads(response.read())
@@ -90,7 +95,9 @@ class Scopus(Query):
         if not publisher and eissn:
             publisher = cache.get_publisher_by_eissn(eissn=eissn)
         if not publisher and eid:
-            LOGGER.info(f"Not issn = {issn} nor eissn = {eissn} are yet cached, " f"eid = {eid}")
+            LOGGER.info(
+                f"Not issn = {issn} nor eissn = {eissn} are yet cached, " f"eid = {eid}"
+            )
             publisher = self.get_publisher_by_eid(eid=eid)
 
             if issn and publisher:
@@ -102,7 +109,10 @@ class Scopus(Query):
 
     @RateLimiter(max_calls=2, period=1)
     def get_impact_by_issn(self, issn: str):
-        url = f"https://api.elsevier.com/content/serial/title/issn/{issn}" f"?apiKey={self._api_key}"
+        url = (
+            f"https://api.elsevier.com/content/serial/title/issn/{issn}"
+            f"?apiKey={self._api_key}"
+        )
 
         response = self.stubborn_url_open(url=url)
         json_response = json.loads(response.read())
@@ -110,11 +120,19 @@ class Scopus(Query):
         try:
             entry = json_response.get("serial-metadata-response").get("entry")[0]
 
-            citeScoreCurrentMetric = entry.get("citeScoreYearInfoList").get("citeScoreCurrentMetric")
+            citeScoreCurrentMetric = entry.get("citeScoreYearInfoList").get(
+                "citeScoreCurrentMetric"
+            )
 
-            citeScoreCurrentMetricYear = entry.get("citeScoreYearInfoList").get("citeScoreCurrentMetricYear")
-            citeScoreTracker = entry.get("citeScoreYearInfoList").get("citeScoreTracker")
-            citeScoreTrackerYear = entry.get("citeScoreYearInfoList").get("citeScoreTrackerYear")
+            citeScoreCurrentMetricYear = entry.get("citeScoreYearInfoList").get(
+                "citeScoreCurrentMetricYear"
+            )
+            citeScoreTracker = entry.get("citeScoreYearInfoList").get(
+                "citeScoreTracker"
+            )
+            citeScoreTrackerYear = entry.get("citeScoreYearInfoList").get(
+                "citeScoreTrackerYear"
+            )
             sjrMetric = entry.get("SJRList").get("SJR")[0].get("$")
             sjrYear = entry.get("SJRList").get("SJR")[0].get("@year")
         except AttributeError as e:
@@ -136,7 +154,6 @@ class Scopus(Query):
 
     @RateLimiter(max_calls=1, period=1)
     def next_page(self, url):
-
         response = self.stubborn_url_open(url=url)
         json_response = json.loads(response.read())
 
@@ -159,7 +176,13 @@ class Scopus(Query):
     def fetch_all(self):
         p = self._persistence()
 
-        query = f"query={self._search_query}" f"&cursor=*" f"&date=2022" f"&view=COMPLETE" f"&apiKey={self._api_key}"
+        query = (
+            f"query={self._search_query}"
+            f"&cursor=*"
+            f"&date=2022"
+            f"&view=COMPLETE"
+            f"&apiKey={self._api_key}"
+        )
 
         next_link = self._base_url + query
 
@@ -171,8 +194,13 @@ class Scopus(Query):
 
     @RateLimiter(max_calls=1, period=1)
     def get_count(self):
-
-        query = f"query={self._search_query}" f"&start=0" f"&count=5" f"&date=2018-2022" f"&apiKey={self._api_key}"
+        query = (
+            f"query={self._search_query}"
+            f"&start=0"
+            f"&count=5"
+            f"&date=2018-2022"
+            f"&apiKey={self._api_key}"
+        )
         url = self._base_url + query
 
         response = self.stubborn_url_open(url=url)
@@ -191,7 +219,10 @@ class Scopus(Query):
 
     @RateLimiter(max_calls=2, period=1)
     def get_openaccess(self, eid: str):
-        url = f"https://api.elsevier.com/content/abstract/eid/{eid}" f"?apiKey=43b38cab54e0a0e4e42667d2998f51e8"
+        url = (
+            f"https://api.elsevier.com/content/abstract/eid/{eid}"
+            f"?apiKey=43b38cab54e0a0e4e42667d2998f51e8"
+        )
         headers = {"Accept": "application/json"}
         response = requests.get(url, headers=headers, timeout=10)
         return response.json()["abstracts-retrieval-response"]["coredata"]["openaccess"]
@@ -217,7 +248,9 @@ class Scopus(Query):
 
         def _parse_affiliation(self, entry):
             try:
-                affiliation_country = entry.get("affiliation")[0].get("affiliation-country")
+                affiliation_country = entry.get("affiliation")[0].get(
+                    "affiliation-country"
+                )
                 return affiliation_country
             except TypeError:
                 LOGGER.info(f"The author {self._author} has no affiliation.")

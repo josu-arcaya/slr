@@ -12,8 +12,10 @@ from core.database import Database
 
 LOGGER = logging.getLogger("systematic")
 
+
 def init_database():
     Database().create_database()
+
 
 def fill_openaccess():
     s = Sqlite()
@@ -43,7 +45,8 @@ def query_scopus():
     terms = [lines[0].split(","), lines[1].split(","), lines[2].split(",")]
 
     search_queries = [
-        f"TITLE-ABS-KEY('{a}' AND '{b}' AND '{c}')" for a, b, c in list(itertools.product(terms[0], terms[1], terms[2]))
+        f"TITLE-ABS-KEY('{a}' AND '{b}' AND '{c}')"
+        for a, b, c in list(itertools.product(terms[0], terms[1], terms[2]))
     ]
 
     for i, s in enumerate(search_queries):
@@ -60,7 +63,8 @@ def count_search_queries():
     terms = [lines[0].split(","), lines[1].split(","), lines[2].split(",")]
 
     search_queries = [
-        f"TITLE-ABS-KEY('{a}' AND '{b}' AND '{c}')" for a, b, c in list(itertools.product(terms[0], terms[1], terms[2]))
+        f"TITLE-ABS-KEY('{a}' AND '{b}' AND '{c}')"
+        for a, b, c in list(itertools.product(terms[0], terms[1], terms[2]))
     ]
 
     total_queries = len(search_queries)
@@ -140,7 +144,9 @@ def main():
 
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s"
+    )
 
     if args.plot:
         p = Plotter()

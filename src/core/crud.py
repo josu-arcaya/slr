@@ -2,7 +2,15 @@ import logging
 from datetime import datetime
 
 from core.database import Database
-from core.models import Continent, Document, DoiEurl, EissnPublisher, IssnImpact, IssnPublisher, StudySelection
+from core.models import (
+    Continent,
+    Document,
+    DoiEurl,
+    EissnPublisher,
+    IssnImpact,
+    IssnPublisher,
+    StudySelection,
+)
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
@@ -18,7 +26,11 @@ class SqlAlchemyORM:
         # This function gets the impact by ISSN
         with self.db.get_session() as sess:
             issn_impact_alias = aliased(IssnImpact)
-            result = sess.query(issn_impact_alias).filter(issn_impact_alias.issn == issn).first()
+            result = (
+                sess.query(issn_impact_alias)
+                .filter(issn_impact_alias.issn == issn)
+                .first()
+            )
 
             if result:
                 return {
@@ -184,7 +196,9 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             try:
                 for publisher in publishers:
-                    issn_publisher = IssnPublisher(issn=publisher[0], publisher=publisher[1])
+                    issn_publisher = IssnPublisher(
+                        issn=publisher[0], publisher=publisher[1]
+                    )
                     sess.add(issn_publisher)
                 sess.commit()
                 LOGGER.info("Publisher inserted successfully")
@@ -245,7 +259,11 @@ class SqlAlchemyORM:
         # This function gets documents without openaccess
         # and with status 3 in StudySelection
         with self.db.get_session() as sess:
-            subquery = sess.query(StudySelection.id_document).filter(StudySelection.status == 3).subquery()
+            subquery = (
+                sess.query(StudySelection.id_document)
+                .filter(StudySelection.status == 3)
+                .subquery()
+            )
 
             doc = aliased(Document)
 
@@ -266,7 +284,11 @@ class SqlAlchemyORM:
         # a document in the database.
         with self.db.get_session() as sess:
             try:
-                stmt = update(Document).where(Document.eid.__eq__(eid)).values(openaccess=openaccess)
+                stmt = (
+                    update(Document)
+                    .where(Document.eid.__eq__(eid))
+                    .values(openaccess=openaccess)
+                )
                 sess.execute(stmt)
 
                 LOGGER.info("Field openaccess updated successfully")
@@ -279,7 +301,11 @@ class SqlAlchemyORM:
         # related to a document in the database.
         with self.db.get_session() as sess:
             try:
-                study_selection = sess.query(StudySelection).filter_by(id_document=document_id).first()
+                study_selection = (
+                    sess.query(StudySelection)
+                    .filter_by(id_document=document_id)
+                    .first()
+                )
 
                 if study_selection:
                     study_selection.status = status

@@ -6,6 +6,22 @@ This tool has been designed to help researchers in the process of searching scie
 
 ## Install
 
+Install all the dependencies, preferably within a virtual environment.
+
+```bash
+pip install -r requirements.txt
+```
+
+Install 
+
+pre-commit hooks.
+
+```bash
+pre-commit install
+```
+
+## Usage
+
 Please use the help function for using the tool
 
 ```bash
