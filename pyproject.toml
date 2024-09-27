@@ -1,4 +1,30 @@
+[project]
+name = "slr"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "argparse>=1.4.0",
+    "geopandas>=1.0.1",
+    "matplotlib>=3.9.2",
+    "networkx>=3.3",
+    "pycountry-convert>=0.7.2",
+    "pycurl>=7.45.3",
+    "pywaffle>=1.1.1",
+    "ratelimiter>=1.2.0.post0",
+    "requests>=2.32.3",
+    "sqlalchemy>=2.0.35",
+]
+
 [tool.pytest.ini_options]
 pythonpath = [
   "src"
 ]
+
+[tool.uv]
+dev-dependencies = [
+    "pre-commit>=3.8.0",
+    "pytest>=8.3.3",
+]
+

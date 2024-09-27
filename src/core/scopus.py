@@ -17,6 +17,7 @@ from core.models import Journal, Manuscript
 LOGGER = logging.getLogger("systematic")
 
 """
+https://dev.elsevier.com/
 https://dev.elsevier.com/documentation/ScopusSearchAPI.wadl
 https://dev.elsevier.com/documentation/SerialTitleAPI.wadl
 """

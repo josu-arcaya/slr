@@ -4,7 +4,6 @@ import os
 import sqlite3 as sl
 from io import BytesIO
 
-import psycopg2 as ps
 import pycountry_convert as pc
 import pycurl
 from core.models import Journal
@@ -32,50 +31,6 @@ class Persistence:
     @abc.abstractmethod
     def set_publisher_by_issn(self, issn: str, publisher: str):
         pass
-
-
-class Postgres(Persistence):
-    def __init__(self, database="prod"):
-        Persistence.__init__(self, database)
-
-        if (
-            os.getenv("DB_USER") is None
-            or os.getenv("DB_HOST") is None
-            or os.getenv("DB_PASS") is None
-        ):
-            logging.error(
-                "Please define DB_USER, DB_HOST and DB_PASS environment " "variables."
-            )
-            exit(-1)
-        self._user = os.getenv("DB_USER")
-        self._host = os.getenv("DB_HOST")
-        self._password = os.getenv("DB_PASS")
-
-    def save(self, documents):
-        connection = None
-        try:
-            connection = ps.connect(
-                user=self._user,
-                password=self._password,
-                host=self._host,
-                port="5432",
-                database=self._database,
-            )
-            cursor = connection.cursor()
-            sql = """ INSERT INTO documents (title, abstract, keywords, author,
-             published_date, doi, eid, publication_name, issn, eissn, type,
-              sub_type, search_query, source) VALUES
-              (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-              ON CONFLICT DO NOTHING;"""
-            cursor.executemany(sql, documents)
-            connection.commit()
-            LOGGER.info("Record inserted successfully")
-        except Exception as error:
-            LOGGER.error(f"Failed to insert record, {error}.")
-            exit(-1)
-        finally:
-            if connection is not None:
-                connection.close()
 
 
 class Sqlite(Persistence):
