@@ -9,6 +9,7 @@ from core.utils import Editorial, Location, Persistence, Sqlite
 from core.plotter import Plotter
 from core.scopus import Scopus
 from core.database import Database
+from core.crud import SqlAlchemyORM
 
 LOGGER = logging.getLogger("systematic")
 
@@ -52,7 +53,7 @@ def query_scopus():
     for i, s in enumerate(search_queries):
         LOGGER.info(f"Processing query {i} out of {len(search_queries)}.")
         LOGGER.info(f"Processing {s}")
-        q = Scopus(persistence=Sqlite, search_query=s)
+        q = Scopus(persistence=SqlAlchemyORM, search_query=s)
         q.fetch_all()
 
 

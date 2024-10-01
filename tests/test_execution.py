@@ -4,6 +4,8 @@
 import pytest
 
 from core.crud import SqlAlchemyORM
+from core.models import Document
+from datetime import date
 
 # from src.core.models import DoiEurl
 
@@ -30,24 +32,24 @@ def test_get_session(get_db):
 
 def test_save(get_db):
     documents = [
-        (
-            "Title3",
-            "Abstract3",
-            "Keyword3",
-            "Author3",
-            "2022-01-03",
-            "DOI3",
-            "EID3",
-            "Publication3",
-            "ISSN3",
-            "EISSN3",
-            "Type3",
-            "SubType3",
-            "Query3",
-            "Source3",
-            "Country3",
-            10,
-            "Access3",
+        Document(
+            title="Title3",
+            abstract="Abstract3",
+            keywords="Keyword3",
+            author="Author3",
+            published_date=date(2022, 1, 3),
+            doi="DOI3",
+            eid="EID3",
+            publication_name="Publication3",
+            issn="ISSN3",
+            eissn="EISSN3",
+            type="Type3",
+            sub_type="SubType3",
+            search_query="Query3",
+            source="Source3",
+            affiliation_country="Country3",
+            citedby_count=10,
+            openaccess="Access3",
         )
     ]
     get_db.save(documents)

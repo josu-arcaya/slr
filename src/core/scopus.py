@@ -6,13 +6,14 @@ import time
 import urllib
 import urllib.request
 from http import HTTPStatus
+from datetime import datetime
 
 import requests
 from ratelimiter import RateLimiter
 
 from core.query import Query
 from core.utils import Persistence, Sqlite
-from core.models import Journal, Manuscript
+from core.models import Journal, Manuscript, Document
 
 LOGGER = logging.getLogger("systematic")
 
@@ -33,10 +34,7 @@ class Scopus(Query):
         self._search_query = urllib.request.quote(search_query)
 
         # Check API key
-        if os.getenv("ELSEVIER_API_KEY") is None:
-            LOGGER.error("Please define ELSEVIER_API_KEY " "environment variable.")
-            exit(-1)
-        self._api_key = os.getenv("ELSEVIER_API_KEY")
+        self._api_key = os.environ["ELSEVIER_API_KEY"]
 
         # Base api query url
         self._base_url = "https://api.elsevier.com/content/search/scopus?"
@@ -163,7 +161,7 @@ class Scopus(Query):
         entries = []
         if json_entries:
             for e in json_entries:
-                m = self.Entry(e, self._raw_search_query, self._name).to_manuscript()
+                m = self.Entry(e, self._raw_search_query, self._name).to_document()
                 entries.append(m)
 
         json_links = json_response.get("search-results").get("link")
@@ -276,3 +274,24 @@ class Scopus(Query):
                 citedby_count=self._citedby_count,
             )
             return m
+
+        def to_document(self):
+            d = Document(
+                title=self._title,
+                abstract=self._abstract,
+                keywords=self._keywords,
+                author=self._author,
+                published_date=datetime.strptime(self._published_date, "%Y-%m-%d"),
+                doi=self._doi,
+                eid=self._eid,
+                publication_name=self._publication_name,
+                issn=self._issn,
+                eissn=self._eissn,
+                type=self._type,
+                sub_type=self._sub_type,
+                search_query=self._search_query,
+                source=self._source,
+                affiliation_country=self._affiliation_country,
+                citedby_count=self._citedby_count,
+            )
+            return d

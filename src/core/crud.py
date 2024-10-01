@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 
 from core.database import Database
 from core.models import (
@@ -15,7 +14,7 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
 
-LOGGER = logging.getLogger("systematic")
+LOGGER = logging.getLogger(__name__)
 
 
 class SqlAlchemyORM:
@@ -110,33 +109,13 @@ class SqlAlchemyORM:
     def save(self, documents):
         # This function saves documents in the database
         with self.db.get_session() as sess:
-            try:
-                for doc in documents:
-                    document = Document(
-                        title=doc[0],
-                        abstract=doc[1],
-                        keywords=doc[2],
-                        author=doc[3],
-                        published_date=datetime.strptime(doc[4], "%Y-%m-%d"),
-                        doi=doc[5],
-                        eid=doc[6],
-                        publication_name=doc[7],
-                        issn=doc[8],
-                        eissn=doc[9],
-                        type=doc[10],
-                        sub_type=doc[11],
-                        search_query=doc[12],
-                        source=doc[13],
-                        affiliation_country=doc[14],
-                        citedby_count=doc[15],
-                        openaccess=doc[16],
-                    )
-                    sess.add(document)
-                sess.commit()
-                LOGGER.info("Document inserted successfully")
-            except IntegrityError as error:
-                LOGGER.error(f"Failed to insert document, {error}.")
-                exit(-1)
+            for doc in documents:
+                try:
+                    sess.add(doc)
+                    sess.commit()
+                    LOGGER.info("Document inserted successfully")
+                except IntegrityError as error:
+                    LOGGER.error(f"Failed to insert document, {error}.")
 
     def get_all_issn_without_publisher(self):
         # This function gets the documents with ISSN but without editor
