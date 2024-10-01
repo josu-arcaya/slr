@@ -6,27 +6,21 @@ This tool has been designed to help researchers in the process of searching scie
 
 ## Install
 
-Install all the dependencies, preferably within a virtual environment.
-
-```bash
-pip install -r requirements.txt
-```
-
-Install 
-
-pre-commit hooks.
-
-```bash
-pre-commit install
-```
+This project is managed using the [uv]([GitHub - astral-sh/uv: An extremely fast Python package and project manager, written in Rust.](https://github.com/astral-sh/uv)) project management tool. Please use uv itself, poetry, or pip-tools to install the dependencies.
 
 ## Usage
 
-Please use the help function for using the tool
+To start using the tool, the required API key needs to be set as an environment variable.
 
 ```bash
-$ ./main.py --help
-usage: main.py [-h] [-s] [-c] [-f] [-z] [-p] [-e] [-o]
+export ELSEVIER_API_KEY=*******
+```
+
+There is a help function for using the tool.
+
+```bash
+$ ./src/main.py --help
+usage: main.py [-h] [-s] [-c] [-f] [-z] [-p] [-e] [-o] [-i]
 
 This application queries different academic engines.
 
@@ -40,6 +34,31 @@ options:
   -e, --fill-editorial  Fill editorial.
   -o, --fill-openaccess
                         Fill openaccess.
+  -i, --init-database   Initialize DataBase
+```
+
+There is a config file, in which the year range, and the search terms that will be used during the search process are specified.
+
+```bash
+$ cat config.yaml 
+---
+date_range: 2018-2022
+search_terms:
+  - ['mlops']
+  - ['devops']
+  - ['aiops']
+```
+
+First, initialize the database file.
+
+```bash
+$ ./src/main.py -i
+```
+
+Finally, kick off the search process
+
+```bash
+$ ./src/main.py -s
 ```
 
 ## Cite
