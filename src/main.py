@@ -4,6 +4,7 @@ import argparse
 import itertools
 import logging
 import os
+from omegaconf import OmegaConf
 
 from core.utils import Editorial, Location, Persistence, Sqlite
 from core.plotter import Plotter
@@ -12,6 +13,8 @@ from core.database import Database
 from core.crud import SqlAlchemyORM
 
 LOGGER = logging.getLogger("systematic")
+
+conf = OmegaConf.load("config.yaml")
 
 
 def init_database():
@@ -22,7 +25,9 @@ def fill_openaccess():
     s = Sqlite()
     for eid in list(s.get_empty_openaccess()):
         LOGGER.info(f"Processing document with eid = {eid}.")
-        scop = Scopus(persistence=Persistence, search_query="None")
+        scop = Scopus(
+            persistence=Persistence, search_query="None", date_range=conf.date_range
+        )
         openaccess = scop.get_openaccess(eid=eid)
         s.set_openaccess(eid=eid, openaccess=openaccess)
 
@@ -40,10 +45,7 @@ def fill_editorial():
 
 
 def query_scopus():
-    with open("search_terms.csv", "r") as f:
-        lines = f.read().splitlines()
-
-    terms = [lines[0].split(","), lines[1].split(","), lines[2].split(",")]
+    terms = conf.search_terms
 
     search_queries = [
         f"TITLE-ABS-KEY('{a}' AND '{b}' AND '{c}')"
@@ -53,7 +55,9 @@ def query_scopus():
     for i, s in enumerate(search_queries):
         LOGGER.info(f"Processing query {i} out of {len(search_queries)}.")
         LOGGER.info(f"Processing {s}")
-        q = Scopus(persistence=SqlAlchemyORM, search_query=s)
+        q = Scopus(
+            persistence=SqlAlchemyORM, search_query=s, date_range=conf.date_range
+        )
         q.fetch_all()
 
 

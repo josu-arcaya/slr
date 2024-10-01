@@ -114,8 +114,9 @@ class SqlAlchemyORM:
                     sess.add(doc)
                     sess.commit()
                     LOGGER.info("Document inserted successfully")
-                except IntegrityError as error:
-                    LOGGER.error(f"Failed to insert document, {error}.")
+                except IntegrityError:
+                    LOGGER.warning("Failed to insert document, it already exists.")
+                    sess.rollback()
 
     def get_all_issn_without_publisher(self):
         # This function gets the documents with ISSN but without editor

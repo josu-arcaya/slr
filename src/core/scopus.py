@@ -25,13 +25,14 @@ https://dev.elsevier.com/documentation/SerialTitleAPI.wadl
 
 
 class Scopus(Query):
-    def __init__(self, persistence: Persistence, search_query: str):
+    def __init__(self, persistence: Persistence, search_query: str, date_range: str):
         super().__init__(persistence)
 
         self._name = "Scopus"
 
         self._raw_search_query = search_query
         self._search_query = urllib.request.quote(search_query)
+        self._date_range = date_range
 
         # Check API key
         self._api_key = os.environ["ELSEVIER_API_KEY"]
@@ -178,7 +179,7 @@ class Scopus(Query):
         query = (
             f"query={self._search_query}"
             f"&cursor=*"
-            f"&date=2022"
+            f"&date={self._date_range}"
             f"&view=COMPLETE"
             f"&apiKey={self._api_key}"
         )
@@ -197,7 +198,7 @@ class Scopus(Query):
             f"query={self._search_query}"
             f"&start=0"
             f"&count=5"
-            f"&date=2018-2022"
+            f"&date={self._date_range}"
             f"&apiKey={self._api_key}"
         )
         url = self._base_url + query
