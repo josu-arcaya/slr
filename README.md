@@ -6,7 +6,7 @@ This tool has been designed to help researchers in the process of searching scie
 
 ## Install
 
-This project is managed using the [uv]([GitHub - astral-sh/uv: An extremely fast Python package and project manager, written in Rust.](https://github.com/astral-sh/uv)) project management tool. Please use uv itself, poetry, or pip-tools to install the dependencies.
+This project is managed using the [uv](https://github.com/astral-sh/uv) project management tool. Please use uv itself, poetry, or pip-tools to install the dependencies.
 
 ## Usage
 
