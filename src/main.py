@@ -4,13 +4,14 @@ import argparse
 import itertools
 import logging
 import os
+
 from omegaconf import OmegaConf
 
-from core.utils import Editorial, Location, Persistence, Sqlite
+from core.crud import SqlAlchemyORM
+from core.database import Database
 from core.plotter import Plotter
 from core.scopus import Scopus
-from core.database import Database
-from core.crud import SqlAlchemyORM
+from core.utils import Editorial, Location, Persistence, Sqlite
 
 LOGGER = logging.getLogger("systematic")
 
@@ -25,9 +26,7 @@ def fill_openaccess():
     s = Sqlite()
     for eid in list(s.get_empty_openaccess()):
         LOGGER.info(f"Processing document with eid = {eid}.")
-        scop = Scopus(
-            persistence=Persistence, search_query="None", date_range=conf.date_range
-        )
+        scop = Scopus(persistence=Persistence, search_query="None", date_range=conf.date_range)
         openaccess = scop.get_openaccess(eid=eid)
         s.set_openaccess(eid=eid, openaccess=openaccess)
 
@@ -48,28 +47,24 @@ def query_scopus():
     terms = conf.search_terms
 
     search_queries = [
-        f"TITLE-ABS-KEY('{a}' AND '{b}' AND '{c}')"
-        for a, b, c in list(itertools.product(terms[0], terms[1], terms[2]))
+        f"TITLE-ABS-KEY('{a}' AND '{b}' AND '{c}')" for a, b, c in list(itertools.product(terms[0], terms[1], terms[2]))
     ]
 
     for i, s in enumerate(search_queries):
         LOGGER.info(f"Processing query {i} out of {len(search_queries)}.")
         LOGGER.info(f"Processing {s}")
-        q = Scopus(
-            persistence=SqlAlchemyORM, search_query=s, date_range=conf.date_range
-        )
+        q = Scopus(persistence=SqlAlchemyORM, search_query=s, date_range=conf.date_range)
         q.fetch_all()
 
 
 def count_search_queries():
-    with open("search_terms.csv", "r") as f:
+    with open("search_terms.csv") as f:
         lines = f.read().splitlines()
 
     terms = [lines[0].split(","), lines[1].split(","), lines[2].split(",")]
 
     search_queries = [
-        f"TITLE-ABS-KEY('{a}' AND '{b}' AND '{c}')"
-        for a, b, c in list(itertools.product(terms[0], terms[1], terms[2]))
+        f"TITLE-ABS-KEY('{a}' AND '{b}' AND '{c}')" for a, b, c in list(itertools.product(terms[0], terms[1], terms[2]))
     ]
 
     total_queries = len(search_queries)
@@ -149,9 +144,7 @@ def main():
 
     args = parser.parse_args()
 
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s"
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s")
 
     if args.plot:
         p = Plotter()

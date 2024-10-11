@@ -1,11 +1,12 @@
 # import unittest
 # from unittest.mock import Mock, patch
 
+from datetime import date
+
 import pytest
 
 from core.crud import SqlAlchemyORM
 from core.models import Document
-from datetime import date
 
 # from src.core.models import DoiEurl
 
@@ -173,7 +174,7 @@ class TestSqlAlchemyORM(unittest.TestCase):
                 "Error in " "set_publisher / get_empty_publisher",
             )
         except AssertionError:
-            LOGGER.error("Error in set_empty_publisher. The editor can't be " "null: (publisher = Column(nullable=False))\n")
+            LOGGER.error("Error in set_empty_publisher. The editor can't be null: (publisher = Column(nullable=False))")
 
     # Test of ISSN query of publishers without an assigned value in
     # IssnPublisher

@@ -2,3 +2,6 @@
 __pycache__
 documents.db
 uv.lock
+.envrc
+.direnv
+*.swp

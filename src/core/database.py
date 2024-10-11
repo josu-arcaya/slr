@@ -1,10 +1,11 @@
 import logging
 import os
 
-from core.abstract_database import AbstractDatabase
-from core.models import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from core.abstract_database import AbstractDatabase
+from core.models import Base
 
 # Configure logging
 LOGGER = logging.getLogger(__name__)
