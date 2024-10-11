@@ -4,6 +4,7 @@ import argparse
 import itertools
 import logging
 import os
+import tempfile
 
 from omegaconf import OmegaConf
 
@@ -58,10 +59,7 @@ def query_scopus():
 
 
 def count_search_queries():
-    with open("search_terms.csv") as f:
-        lines = f.read().splitlines()
-
-    terms = [lines[0].split(","), lines[1].split(","), lines[2].split(",")]
+    terms = conf.search_terms
 
     search_queries = [
         f"TITLE-ABS-KEY('{a}' AND '{b}' AND '{c}')" for a, b, c in list(itertools.product(terms[0], terms[1], terms[2]))
@@ -69,11 +67,11 @@ def count_search_queries():
 
     total_queries = len(search_queries)
 
-    filepath = "/tmp/search_terms_results.csv"
+    filepath = f"{tempfile.gettempdir()}search_terms_results.csv"
     if os.path.exists(filepath):
         os.remove(filepath)
 
-    with open("/tmp/search_terms_results.csv", "a") as f:
+    with open(f"{tempfile.gettempdir()}search_terms_results.csv", "a") as f:
         for i, s in enumerate(search_queries):
             LOGGER.warning(f"Counting elements for query {i} out of {total_queries}.")
             q = Scopus(persistence=Persistence, search_query=s)

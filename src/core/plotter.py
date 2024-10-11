@@ -1,4 +1,5 @@
 import logging
+import tempfile
 
 import geopandas
 import matplotlib.pyplot as plt
@@ -20,9 +21,7 @@ class Plotter:
 
     def plot_bar_type(self):
         fig, ax = plt.subplots()
-        self.__df.groupby(["year", "sub_type"]).size().unstack().plot.bar(
-            stacked=True, ax=ax
-        )
+        self.__df.groupby(["year", "sub_type"]).size().unstack().plot.bar(stacked=True, ax=ax)
         #    stacked=True, ax=ax
         # )
         ax.set_axisbelow(True)
@@ -33,7 +32,7 @@ class Plotter:
         plt.ylabel("Number of articles")
         plt.yticks(list(range(0, 25, 5)))
         plt.tight_layout()
-        plt.savefig("/tmp/fig_type.svg")
+        plt.savefig(f"{tempfile.gettempdir()}/fig_type.svg")
         # plt.show()
 
     def plot_type(self):
@@ -42,9 +41,7 @@ class Plotter:
         #    stacked=True, ax=ax
         # )
         # self.__df.groupby(["sub_type"]).size().plot.bar(ax=ax)
-        self.__df.groupby(["sub_type"]).size().plot.pie(
-            ax=ax, cmap="summer", legend=True
-        )
+        self.__df.groupby(["sub_type"]).size().plot.pie(ax=ax, cmap="summer", legend=True)
         #    stacked=True, ax=ax
         # )
         ax.set_axisbelow(True)
@@ -56,7 +53,7 @@ class Plotter:
         # plt.ylabel("Number of articles")
         # plt.yticks(list(range(0, 25, 5)))
         plt.tight_layout()
-        plt.savefig("/tmp/fig_type.svg")
+        plt.savefig(f"{tempfile.gettempdir()}/fig_type.svg")
         # plt.show()
 
     def plot_waffle_type(self):
@@ -75,7 +72,7 @@ class Plotter:
             icon_size=18,
             icon_legend=True,
         )
-        plt.savefig("/tmp/fig_type.svg")
+        plt.savefig(f"{tempfile.gettempdir()}/fig_type.svg")
         # plt.show()
 
     def plot_continent(self):
@@ -86,7 +83,7 @@ class Plotter:
             # colors=["red", "green", "blue", "orange", "purple"],
         )
         plt.tight_layout()
-        plt.savefig("/tmp/fig_continent.pdf")
+        plt.savefig(f"{tempfile.gettempdir()}/fig_continent.pdf")
 
     def plot_geo_continent(self):
         fig, ax = plt.subplots(1, 1)
@@ -95,14 +92,14 @@ class Plotter:
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.1)
         # print(self.__df.groupby(["continent"]).size().head())
-        world = geopandas.read_file(
-            geopandas.datasets.get_path("naturalearth_lowres")
-        ).dissolve(by="continent", aggfunc="sum")
+        world = geopandas.read_file(geopandas.datasets.get_path("naturalearth_lowres")).dissolve(
+            by="continent", aggfunc="sum"
+        )
         publications = [0, np.nan, 16, 39, 20, 2, 0, 0]
         world["publications"] = publications
         world.plot(column="publications", legend=True, ax=ax, cax=cax)
         plt.tight_layout()
-        plt.savefig("/tmp/fig_geo_continent.svg")
+        plt.savefig(f"{tempfile.gettempdir()}/fig_geo_continent.svg")
         # plt.show()
 
     def plot_publisher(self):
@@ -140,7 +137,7 @@ class Plotter:
         plt.tight_layout()
 
         # plt.show()
-        plt.savefig("/tmp/fig_publisher.pdf")
+        plt.savefig(f"{tempfile.gettempdir()}/fig_publisher.pdf")
 
     def plot_keywords(self):
         plt.close("all")
@@ -174,9 +171,7 @@ class Plotter:
             pos=pos,
             **options,
         )
-        nx.draw_networkx_nodes(
-            G, nodelist=keywords[1].split(","), node_color="tab:red", pos=pos, **options
-        )
+        nx.draw_networkx_nodes(G, nodelist=keywords[1].split(","), node_color="tab:red", pos=pos, **options)
         nx.draw_networkx_nodes(
             G,
             nodelist=keywords[2].split(","),
@@ -215,4 +210,4 @@ class Plotter:
         # fig = plt.figure(1, figsize=(2000, 80), dpi=60)
 
         # plt.show()
-        plt.savefig("/tmp/fig_keywords.svg")
+        plt.savefig(f"{tempfile.gettempdir()}/fig_keywords.svg")

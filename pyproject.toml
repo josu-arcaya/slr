@@ -41,3 +41,9 @@ select = [
   "SIM", # flake8-simplify
   "I",   # isort
 ]
+
+[tool.bandit]
+exclude_dirs = ["**/.venv/*"]
+skips = [
+  "B310",
+]
