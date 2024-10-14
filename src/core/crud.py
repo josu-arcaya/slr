@@ -1,6 +1,6 @@
 import logging
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
 
@@ -298,6 +298,19 @@ class SqlAlchemyORM:
         with self.db.get_session() as sess:
             result = sess.query(Document.id_document, Document.abstract).all()
             return [(row[0], row[1]) for row in result]
+
+    def get_documents_year(self):
+        with self.db.get_session() as sess:
+            result = (
+                sess.query(
+                    func.substr(Document.published_date, 1, 4).label("año"),  # Extraer el año de la fecha
+                    func.count().label("cantidad"),  # Contar el número de documentos
+                )
+                .group_by(func.substr(Document.published_date, 1, 4))  # Agrupar por el año
+                .all()  # Ejecutamos la consulta y obtenemos todos los resultados
+            )
+
+        return result
 
     def insert_publisher(self, eid: str, complete_name: str, author: dict):
         # This function inserts a publisher in the database

@@ -9,6 +9,7 @@ import matplotlib.patheffects as path_effects
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+import pandas as pd
 from matplotlib.colors import LinearSegmentedColormap
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from shapely.geometry import Point
@@ -68,6 +69,25 @@ class Plotter:
         plt.grid(axis="y", linestyle="--", alpha=0.7)
 
         plt.tight_layout()
+        plt.show()
+
+    def plot_bar_type(self, document_years: list):
+        df = pd.DataFrame(document_years, columns=["year", "number_of_articles"])
+
+        fig, ax = plt.subplots()
+
+        df.set_index("year")["number_of_articles"].plot(kind="bar", ax=ax)
+
+        ax.set_axisbelow(True)
+        ax.grid(axis="y")
+        ax.legend(["Number of articles"], ncol=4, loc="upper center", bbox_to_anchor=(0.5, 1.12))
+
+        plt.xlabel("Publication year")
+        plt.ylabel("Number of articles")
+        plt.xticks(rotation=0)
+        plt.yticks(list(range(0, 500, 50)))
+        plt.tight_layout()
+
         plt.show()
 
     def show_country_map(self, country_list: list):

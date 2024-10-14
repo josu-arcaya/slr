@@ -163,6 +163,14 @@ def main():
         required=False,
     )
 
+    parser.add_argument(
+        "-py",
+        "--plot-years",
+        action="store_true",
+        help="Plot number of papers per year.",
+        required=False,
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s")
@@ -208,6 +216,11 @@ def main():
         country_list = orm.get_documents_country()
         p = Plotter()
         p.show_country_map(country_list=country_list)
+
+    if args.plot_years:
+        document_years = orm.get_documents_year()
+        p = Plotter()
+        p.plot_bar_type(document_years=document_years)
 
     if args.fill_continent:
         LOGGER.info("About to populate empty continents")
