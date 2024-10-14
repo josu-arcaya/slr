@@ -15,10 +15,6 @@ from core.models import Document
 # LOGGER.setLevel(logging.ERROR)
 
 
-def test_something():
-    assert 1 == 1
-
-
 @pytest.fixture
 def get_db():
     orm = SqlAlchemyORM(":memory:")
@@ -54,6 +50,10 @@ def test_save(get_db):
         )
     ]
     get_db.save(documents)
+
+
+def test_get_documents_country(get_db):
+    get_db.get_documents_country()
 
 
 """

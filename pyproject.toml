@@ -43,7 +43,7 @@ select = [
 ]
 
 [tool.bandit]
-exclude_dirs = ["**/.venv/*"]
+exclude_dirs = ["**/.venv/*", "tests/*"]
 skips = [
   "B310",
 ]
