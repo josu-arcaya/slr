@@ -124,6 +124,14 @@ def main():
     )
 
     parser.add_argument(
+        "-pc",
+        "--plot-country",
+        action="store_true",
+        help="Plot country diagram",
+        required=False,
+    )
+
+    parser.add_argument(
         "-pr",
         "--plot-relations",
         action="store_true",
@@ -195,6 +203,11 @@ def main():
                         orm.insert_publisher(eid=eid_list[k][0], complete_name=complete_name, author=authors_list[i])
                     except Exception as e:
                         LOGGER.info(f"Error={e} inserting the publisher")
+
+    if args.plot_country:
+        country_list = orm.get_documents_country()
+        p = Plotter()
+        p.show_country_map(country_list=country_list)
 
     if args.fill_continent:
         LOGGER.info("About to populate empty continents")

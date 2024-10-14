@@ -3,11 +3,15 @@ import tempfile
 from collections import Counter
 
 import geopandas
+import geopandas as gpd
 import matplotlib.colors as mcolors
+import matplotlib.patheffects as path_effects
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from shapely.geometry import Point
 
 LOGGER = logging.getLogger("systematic")
 
@@ -62,6 +66,98 @@ class Plotter:
 
         plt.xticks(rotation=45, ha="right")
         plt.grid(axis="y", linestyle="--", alpha=0.7)
+
+        plt.tight_layout()
+        plt.show()
+
+    def show_country_map(self, country_list: list):
+        countries, counts, sorted_countries = self.count_clean_countries(country_list)
+
+        # Load the world shapefile
+        shapefile_path = "src/files/ne_110m_admin_0_countries.shp"
+        world = gpd.read_file(shapefile_path)
+        world["SOVEREIGNT"] = world["SOVEREIGNT"].str.upper()
+
+        # Create frequency map
+        frequency_map = {country.upper(): count for country, count in zip(countries, counts, strict=False)}
+        world["frequency"] = world["SOVEREIGNT"].map(frequency_map).fillna(0)
+
+        fig, ax = plt.subplots(1, 1, figsize=(20, 15), facecolor="#F0F0F0")
+
+        # Create a custom colormap
+        colors = ["#FFF5EB", "#FEE6CE", "#FDD0A2", "#FDAE6B", "#FD8D3C", "#F16913", "#D94801", "#A63603", "#7F2704"]
+        n_bins = len(colors)
+        cmap = LinearSegmentedColormap.from_list("custom_cmap", colors, N=n_bins)
+
+        # Normalize the frequency data
+        vmin, vmax = 0, world["frequency"].max()
+        norm = plt.Normalize(vmin=vmin, vmax=vmax)
+
+        world.plot(
+            column="frequency",
+            ax=ax,
+            cmap=cmap,
+            norm=norm,
+            legend=True,
+            legend_kwds={
+                "label": "Number of Documents",
+                "orientation": "horizontal",
+                "shrink": 0.6,
+                "aspect": 20,
+                "pad": 0.08,
+            },
+            missing_kwds={"color": "lightgrey"},
+        )
+
+        # Add country boundaries
+        world.boundary.plot(ax=ax, linewidth=0.2, color="black")
+
+        # Add text for countries with data
+        for _idx, row in world.iterrows():
+            if row["frequency"] > 0:
+                centroid = row["geometry"].centroid
+                if row["SOVEREIGNT"] == "FRANCE":
+                    centroid = Point(1.5, 47)
+                if row["SOVEREIGNT"] == "UNITED KINGDOM":
+                    centroid = Point(-1, 53)
+
+                text = ax.text(
+                    centroid.x,
+                    centroid.y,
+                    str(int(row["frequency"])),
+                    fontsize=8,
+                    ha="center",
+                    va="center",
+                    color="black",
+                )
+                text.set_path_effects([path_effects.Stroke(linewidth=2, foreground="white"), path_effects.Normal()])
+
+        # Create a table with the top 10 countries
+        top_10 = sorted_countries[:10]
+        table_data = [(country, freq) for country, freq in top_10]
+
+        table = ax.table(
+            cellText=table_data,
+            colLabels=["Country", "Documents"],
+            loc="center",
+            cellLoc="center",
+            bbox=[-0.3, 0.3, 0.2, 0.5],
+        )
+
+        table.auto_set_font_size(False)
+        table.set_fontsize(10)
+        table.scale(1, 1.5)
+
+        # Style the table
+        for (row, _col), cell in table.get_celld().items():
+            if row == 0:
+                cell.set_text_props(weight="bold", color="white")
+                cell.set_facecolor("#4472C4")
+            else:
+                cell.set_facecolor("#E6F2FF" if row % 2 == 0 else "white")
+
+        plt.title("Global Distribution of Documents by Country", fontsize=20, pad=20)
+        ax.axis("off")
 
         plt.tight_layout()
         plt.show()
