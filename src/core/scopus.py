@@ -182,7 +182,7 @@ class Scopus(Query):
 
         response = self.stubborn_url_open(url=url)
         json_response = json.loads(response.read())
-
+                
         return json_response.get("search-results").get("opensearch:totalResults")
 
     def fill_publishers(self):

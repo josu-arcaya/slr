@@ -66,17 +66,20 @@ def count_search_queries():
     ]
 
     total_queries = len(search_queries)
+    LOGGER.info(f"The total amount of search queries are {total_queries}")
 
-    filepath = f"{tempfile.gettempdir()}search_terms_results.csv"
+    filepath = f"{tempfile.gettempdir()}/search_terms_results.csv"
     if os.path.exists(filepath):
         os.remove(filepath)
-
-    with open(f"{tempfile.gettempdir()}search_terms_results.csv", "a") as f:
+    
+    with open(f"{tempfile.gettempdir()}/search_terms_results.csv", "a") as f:
         for i, s in enumerate(search_queries):
             LOGGER.warning(f"Counting elements for query {i} out of {total_queries}.")
-            q = Scopus(persistence=Persistence, search_query=s)
+            q = Scopus(persistence=Persistence, search_query=s, date_range=conf.date_range)
             total_results = q.get_count()
+            LOGGER.info(f"{s} query have {total_results} documents")
             f.write(str(i) + "," + s + "," + total_results + "\n")
+            
 
 
 def main():
@@ -153,6 +156,9 @@ def main():
         # p.plot_keywords()
         # p.plot_waffle_type()
 
+    if args.count:
+        count_search_queries()
+        
     if args.scopus:
         query_scopus()
 
