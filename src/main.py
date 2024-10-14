@@ -17,6 +17,7 @@ from core.utils import Editorial, Location, Persistence, Sqlite
 LOGGER = logging.getLogger("systematic")
 
 conf = OmegaConf.load("config.yaml")
+orm = SqlAlchemyORM()
 
 
 def init_database():
@@ -71,7 +72,7 @@ def count_search_queries():
     filepath = f"{tempfile.gettempdir()}/search_terms_results.csv"
     if os.path.exists(filepath):
         os.remove(filepath)
-    
+
     with open(f"{tempfile.gettempdir()}/search_terms_results.csv", "a") as f:
         for i, s in enumerate(search_queries):
             LOGGER.warning(f"Counting elements for query {i} out of {total_queries}.")
@@ -79,7 +80,6 @@ def count_search_queries():
             total_results = q.get_count()
             LOGGER.info(f"{s} query have {total_results} documents")
             f.write(str(i) + "," + s + "," + total_results + "\n")
-            
 
 
 def main():
@@ -99,13 +99,7 @@ def main():
         help="Count the documents for each search query.",
         required=False,
     )
-    parser.add_argument(
-        "-f",
-        "--fill-publisher",
-        action="store_true",
-        help="Fill publisher.",
-        required=False,
-    )
+
     parser.add_argument(
         "-z",
         "--fill-continent",
@@ -143,6 +137,14 @@ def main():
         required=False,
     )
 
+    parser.add_argument(
+        "-f",
+        "--fill-publisher",
+        action="store_true",
+        help="Fill in the publisher table with the publishers of documents table.",
+        required=False,
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s")
@@ -158,13 +160,30 @@ def main():
 
     if args.count:
         count_search_queries()
-        
+
     if args.scopus:
         query_scopus()
 
     if args.fill_publisher:
-        pass
-        # Scopus(persistence=Sqlite, search_query="None").fill_publishers()
+        scop = Scopus(persistence=Persistence, search_query="None", date_range=conf.date_range)
+
+        eid_list = orm.get_documents_eid()
+        for k in range(len(eid_list)):
+            LOGGER.info(f"Document {k+1}/{len(eid_list)}")
+            authors_list = scop.get_publishers_by_eid(eid_list[k])
+            if authors_list:
+                for i in range(len(authors_list)):
+                    if authors_list[i]["given_name"] is not None and authors_list[i]["surname"] is not None:
+                        complete_name = authors_list[i]["given_name"] + " " + authors_list[i]["surname"]
+                    elif authors_list[i]["given_name"] is not None:
+                        complete_name = authors_list[i]["given_name"]
+                    else:
+                        complete_name = authors_list[i]["surname"]
+
+                    try:
+                        orm.insert_publisher(eid=eid_list[k][0], complete_name=complete_name, author=authors_list[i])
+                    except Exception as e:
+                        LOGGER.info(f"Error={e} inserting the publisher")
 
     if args.fill_continent:
         LOGGER.info("About to populate empty continents")

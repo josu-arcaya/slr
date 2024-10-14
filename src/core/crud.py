@@ -3,7 +3,7 @@ import logging
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
-from sqlalchemy import text
+
 from core.database import Database
 from core.models import (
     Continent,
@@ -12,6 +12,7 @@ from core.models import (
     EissnPublisher,
     IssnImpact,
     IssnPublisher,
+    Publisher,
     StudySelection,
 )
 
@@ -279,43 +280,43 @@ class SqlAlchemyORM:
             except Exception as error:
                 LOGGER.error(f"Failed to update status of study selection, {error}.")
                 exit(-1)
-                
-    
-    
+
     def get_documents_country(self):
         # This function gets the country value of every entry
         with self.db.get_session() as sess:
-            result = sess.execute(text('SELECT affiliation_country FROM documents')).fetchall()
-            return result
-    
+            result = sess.query(Document.affiliation_country).all()
+            return [(row[0]) for row in result]
+
     def get_documents_eid(self):
         # This function gets the eid value of every document
         with self.db.get_session() as sess:
-            result = sess.execute(text('select eid from documents;')).fetchall()
-            return result
-    
+            result = sess.query(Document.eid).all()
+            return [(row[0]) for row in result]
+
     def get_documents_id_abstract(self):
         # This function gets the relation between document abstract and it identificator
         with self.db.get_session() as sess:
-            result = sess.execute(text('SELECT id_document,abstract from documents;')).fetchall()
-            return result
-    
-    
-    def get_documents_year(self):
-        # This function gets the yar of publication of every document
-        with self.db.get_session() as sess:
-            result = sess.execute(text('SELECT SUBSTR(published_date, 1, 4) AS año, COUNT(*) AS cantidad FROM documents group by año;')).fetchall()
-            return result
-    
-    def get_documents_type(self):
-        # This function gets the number of sub group
-        with self.db.get_session() as sess:
-            result = sess.execute(text('SELECT sub_type, COUNT(*) AS cantidad FROM documents group by sub_type;')).fetchall()
-            return result
-        
+            result = sess.query(Document.id_document, Document.abstract).all()
+            return [(row[0], row[1]) for row in result]
+
     def insert_publisher(self, eid: str, complete_name: str, author: dict):
         # This function inserts a publisher in the database
         with self.db.get_session() as sess:
-            sqlite_insert_query = f"""INSERT INTO publisher (id_document, complete_name, auid, document_number, cited_by_count, citation_count, creation_date, publication_range, country, city) VALUES ("{eid}","{complete_name}","{author['auid']}",{author['document_count']},{author['cited_by_count']},{author['citation_count']},"{author['creation_date']}","{author['publication_range']}", "{author['country']}", "{author['city']}")"""
-            sess.execute(text(sqlite_insert_query))        
-            sess.commit()
+            publisher = Publisher(
+                id_document=eid,
+                complete_name=complete_name,
+                auid=author["auid"],
+                document_number=author["document_count"],
+                cited_by_count=author["cited_by_count"],
+                citation_count=author["citation_count"],
+                creation_date=author["creation_date"],
+                publication_range=author["publication_range"],
+                country=author["country"],
+                city=author["city"],
+            )
+
+        # Agregar la instancia a la sesión
+        sess.add(publisher)
+
+        # Confirmar la transacción (commit)
+        sess.commit()

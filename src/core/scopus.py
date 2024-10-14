@@ -48,6 +48,7 @@ class Scopus(Query):
             try:
                 response = urllib.request.urlopen(request, timeout=300)
                 LOGGER.info(f"{response.getheader('X-RateLimit-Remaining')} " f"requests left.")
+
                 return response
             except TimeoutError as e:
                 LOGGER.error(f"Error while opening url, error = {e}")
@@ -55,31 +56,72 @@ class Scopus(Query):
             except urllib.error.HTTPError as e:
                 LOGGER.error(f"Error while opening url, error = {e}")
                 if e.code == HTTPStatus.TOO_MANY_REQUESTS:
-                    raise e
+                    raise (e)
+
                 time.sleep(60)
 
-    @RateLimiter(max_calls=2, period=1)
-    def get_publisher_by_eid(self, eid: str):
+    @RateLimiter(max_calls=2, period=3)
+    def get_publishers_by_eid(self, eid: str):
         url = f"https://api.elsevier.com/content/abstract/eid/{eid}" f"?apiKey={self._api_key}"
 
+        # Get document information using the eid
         response = self.stubborn_url_open(url=url)
-        json_response = json.loads(response.read())
 
-        publisher = None
+        json_respon = json.loads(response.read())
+
+        authors_list = []
+
+        # Obtain all the authors information from the json response
         try:
-            publisher = (
-                json_response.get("abstracts-retrieval-response")
-                .get("item")
-                .get("bibrecord")
-                .get("head")
-                .get("source")
-                .get("publisher")
-                .get("publishername")
-            )
-        except AttributeError:
-            LOGGER.error(f"Error fetching publisher for eid = {eid}.")
+            # First type of json response for authors
+            for auth in json_respon["abstracts-retrieval-response"]["item"]["bibrecord"]["head"]["author-group"]:
+                author_info = {}
+                affiliation = auth.get("affiliation")
+                if affiliation:
+                    country = affiliation.get("country")
+                    city = affiliation.get("city")
+                    author_info["country"] = country
+                    author_info["city"] = city
+                else:
+                    author_info["country"] = None
+                    author_info["city"] = None
 
-        return publisher
+                for author in auth.get("author", []):
+                    author_info["given_name"] = author.get("ce:given-name")
+                    author_info["surname"] = author.get("ce:surname")
+                    author_info["auid"] = author.get("@auid")
+
+                    authors_list.append(author_info)
+
+        except Exception:
+            try:
+                # Second type of json response for authors
+                author_group = json_respon["abstracts-retrieval-response"]["item"]["bibrecord"]["head"]["author-group"]
+                affiliation = author_group.get("affiliation")
+                if affiliation:
+                    country = affiliation.get("country")
+                    city = affiliation.get("city")
+                    author_info["country"] = country
+                    author_info["city"] = city
+                else:
+                    author_info["country"] = None
+                    author_info["city"] = None
+
+                for author in author_group.get("author", []):
+                    author_info["given_name"] = author.get("ce:given-name")
+                    author_info["surname"] = author.get("ce:surname")
+                    author_info["auid"] = author.get("@auid")
+
+                    authors_list.append(author_info)
+
+            except Exception as e:
+                LOGGER.info(f"There is an error, the error is {e} and json response is {json_respon}")
+                authors_list = None
+
+        if authors_list:
+            authors_list = self.extend_authors_info(auth_list=authors_list)
+
+        return authors_list
 
     def get_publisher(self, issn: str, eissn: str, eid: str):
         cache = Sqlite()
@@ -182,7 +224,7 @@ class Scopus(Query):
 
         response = self.stubborn_url_open(url=url)
         json_response = json.loads(response.read())
-                
+
         return json_response.get("search-results").get("opensearch:totalResults")
 
     def fill_publishers(self):
@@ -193,6 +235,30 @@ class Scopus(Query):
             publisher = self.get_publisher(issn=issn, eissn=eissn, eid=eid)
             if publisher:
                 p.set_publisher(publishers=[(id_document, publisher)])
+
+    @RateLimiter(max_calls=2, period=3)
+    def extend_authors_info(self, auth_list: list):
+        # Once we obtain an author list of the document, we obtain more detail information about each one
+        for i in range(len(auth_list)):
+            url = f"https://api.elsevier.com/content/author/author_id/{auth_list[i]['auid']}" f"?apiKey={self._api_key}"
+
+            response = self.stubborn_url_open(url=url)
+
+            data = json.loads(response.read())
+
+            author = data["author-retrieval-response"][0]
+
+            auth_list[i]["document_count"] = author["coredata"]["document-count"]
+            auth_list[i]["cited_by_count"] = author["coredata"]["cited-by-count"]
+            auth_list[i]["citation_count"] = author["coredata"]["citation-count"]
+            date_created = author["author-profile"]["date-created"]
+            auth_list[i]["creation_date"] = f"{date_created['@day']}-{date_created['@month']}-{date_created['@year']}"
+            publication_range = author["author-profile"]["publication-range"]
+            start_year = publication_range["@start"]
+            end_year = publication_range["@end"]
+            auth_list[i]["publication_range"] = f"{start_year}-{end_year}"
+
+        return auth_list
 
     @RateLimiter(max_calls=2, period=1)
     def get_openaccess(self, eid: str):
