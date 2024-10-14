@@ -6,8 +6,17 @@ Base = declarative_base()
 
 class Publisher(Base):
     __tablename__ = "publisher"
-    id_document = Column(Integer, primary_key=True)
-    publisher = Column(String, nullable=False)
+    publisher_id = Column(Integer, primary_key=True)
+    id_document = Column(String, nullable=False)
+    complete_name = Column(String, nullable=False)
+    auid = Column(String, primary_key=False)
+    document_number = Column(Integer, nullable=False)
+    cited_by_count = Column(Integer, nullable=False)
+    citation_count = Column(Integer, nullable=False)
+    creation_date = Column(String, nullable=False)
+    publication_range = Column(Integer, nullable=False)
+    country = Column(String, nullable=False)
+    city = Column(String, nullable=False)
 
 
 class IssnPublisher(Base):
