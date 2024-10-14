@@ -109,13 +109,6 @@ def main():
     )
 
     parser.add_argument(
-        "-p",
-        "--plot",
-        action="store_true",
-        help="Plot Data.",
-        required=False,
-    )
-    parser.add_argument(
         "-e",
         "--fill-editorial",
         action="store_true",
@@ -129,6 +122,15 @@ def main():
         help="Fill openaccess.",
         required=False,
     )
+
+    parser.add_argument(
+        "-pr",
+        "--plot-relations",
+        action="store_true",
+        help="Plot relations diagram",
+        required=False,
+    )
+
     parser.add_argument(
         "-i",
         "--init-database",
@@ -149,17 +151,13 @@ def main():
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s")
 
-    if args.plot:
-        p = Plotter()
-        # p.plot_continent()
-        # p.plot_geo_continent()
-        # p.plot_type()
-        p.plot_publisher()
-        # p.plot_keywords()
-        # p.plot_waffle_type()
-
     if args.count:
         count_search_queries()
+
+    if args.plot_relations:
+        search_terms = conf.search_terms
+        p = Plotter()
+        p.relations_diagram(set_1=search_terms[0], set_2=search_terms[1], set_3=search_terms[2])
 
     if args.scopus:
         query_scopus()

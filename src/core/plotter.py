@@ -2,12 +2,11 @@ import logging
 import tempfile
 
 import geopandas
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import pandas as pd
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from pywaffle import Waffle
 
 LOGGER = logging.getLogger("systematic")
 
@@ -15,9 +14,16 @@ LOGGER = logging.getLogger("systematic")
 class Plotter:
     # chose a colormap
     # https://matplotlib.org/2.0.2/users/colormaps.html
-    def __init__(self):
-        self.__df = pd.read_csv("data/df3.csv")
-        # print(self.__df.head())
+
+    def defining_spacing(self, param_list: list):
+        if len(param_list) < 6:
+            spacing_set = 18
+        elif len(param_list) < 9:
+            spacing_set = 10
+        else:
+            spacing_set = 5
+
+        return spacing_set
 
     def plot_bar_type(self):
         fig, ax = plt.subplots()
@@ -53,25 +59,6 @@ class Plotter:
         # plt.ylabel("Number of articles")
         # plt.yticks(list(range(0, 25, 5)))
         plt.tight_layout()
-        plt.savefig(f"{tempfile.gettempdir()}/fig_type.svg")
-        # plt.show()
-
-    def plot_waffle_type(self):
-        data = {"Journal Article": 32, "Conference Paper": 45}
-        plt.figure(
-            FigureClass=Waffle,
-            rows=5,
-            values=data,
-            colors=("#232066", "#983D3D"),
-            legend={
-                "loc": "lower center",
-                "bbox_to_anchor": (0, -0.4),
-                "ncol": len(data),
-            },
-            icons="book",
-            icon_size=18,
-            icon_legend=True,
-        )
         plt.savefig(f"{tempfile.gettempdir()}/fig_type.svg")
         # plt.show()
 
@@ -139,75 +126,85 @@ class Plotter:
         # plt.show()
         plt.savefig(f"{tempfile.gettempdir()}/fig_publisher.pdf")
 
-    def plot_keywords(self):
-        plt.close("all")
-        keywords = np.genfromtxt("search_terms.csv", dtype=str, delimiter="\n")
+    def relations_diagram(self, set_1: list, set_2: list, set_3: list):
+        relation_graph = nx.Graph()
+
+        # Agreggate the nodes of all the set
+        relation_graph.add_nodes_from(set_1)
+        relation_graph.add_nodes_from(set_2)
+        relation_graph.add_nodes_from(set_3)
+
+        # Connect the nodes
+        for node1 in set_1:
+            for node2 in set_2:
+                relation_graph.add_edge(node1, node2)
+
+        for node2 in set_2:
+            for node3 in set_3:
+                relation_graph.add_edge(node2, node3)
+
+        spacing_set1 = self.defining_spacing(set_1)
+        spacing_set2 = self.defining_spacing(set_2)
+        spacing_set3 = self.defining_spacing(set_3)
+
+        # Assign the position of every node
 
         pos = {}
-        vertical_limit = 20
-        step = vertical_limit / (len(keywords[0].split(",")) - 1)
-        for i, kw in enumerate(keywords[0].split(",")):
-            pos[kw] = (0, i * step)
-            # print(i * step)
 
-        step = vertical_limit / (len(keywords[1].split(",")) - 1)
-        for i, kw in enumerate(keywords[1].split(",")):
-            pos[kw] = (1, i * step)
-            # print(i * step)
+        for i, node in enumerate(set_1):
+            pos[node] = (0, i * spacing_set1)
 
-        step = vertical_limit / (len(keywords[2].split(",")) - 1)
-        for i, kw in enumerate(keywords[2].split(",")):
-            pos[kw] = (2, i * step)
-            # print(i * step)
+        for i, node in enumerate(set_2):
+            pos[node] = (1, i * spacing_set2)
 
-        G = nx.Graph()
-        plt.figure(1, figsize=(8, 4.8))
+        for i, node in enumerate(set_3):
+            pos[node] = (2, i * spacing_set3)
 
-        options = {"edgecolors": "tab:gray", "node_size": 200, "alpha": 1.0}
-        nx.draw_networkx_nodes(
-            G,
-            nodelist=keywords[0].split(","),
-            node_color="tab:blue",
-            pos=pos,
-            **options,
-        )
-        nx.draw_networkx_nodes(G, nodelist=keywords[1].split(","), node_color="tab:red", pos=pos, **options)
-        nx.draw_networkx_nodes(
-            G,
-            nodelist=keywords[2].split(","),
-            node_color="tab:green",
-            pos=pos,
-            **options,
-        )
-        nx.draw_networkx_edges(G, pos, width=1.0, alpha=0.5)
+        # Assign the color of every set (column in the graph)
 
-        edgelist = []
-        for k0 in keywords[0].split(","):
-            for k1 in keywords[1].split(","):
-                edgelist.append((k0, k1))
+        colors_1 = ["lightblue"] * len(set_1)  # Colores para el primer set
+        colors_2 = ["lightgreen"] * len(set_2)  # Colores para el segundo set
+        colors_3 = ["mediumorchid"] * len(set_3)  # Colores morados para el tercer set
 
-        for k1 in keywords[1].split(","):
-            for k2 in keywords[2].split(","):
-                edgelist.append((k1, k2))
+        node_colors = colors_1 + colors_2 + colors_3
 
-        nx.draw_networkx_edges(
-            G,
-            pos,
-            edgelist=edgelist,
-            alpha=0.4,
-            edge_color="tab:grey",
-        )
+        # Generate colors for the lines that join set values
 
-        # fig, ax = plt.subplots(1, 1, figsize=(6, 1))
-        # plt.figure(figsize=(6, 1))
-        # plt.figure(figsize=(3, 3))
+        color_palette = list(mcolors.TABLEAU_COLORS.values())
+        edge_colors = np.resize(color_palette, len(relation_graph.edges()))
 
-        # plt.figure(1, figsize=(6, 12))
-        # plt.tight_layout()
-        # fig, ax = plt.subplots()
-        # f, axs = plt.subplots(1, 1, figsize=(15, 1))
+        # Draw the graph
+        plt.figure(figsize=(12, 8))
 
-        # fig = plt.figure(1, figsize=(2000, 80), dpi=60)
+        draw_params = {
+            "with_labels": False,
+            "node_size": 1000,
+            "node_color": node_colors,
+            "font_size": 10,
+            "font_weight": "bold",
+            "edge_color": edge_colors,
+            "width": 2,
+            "alpha": 0.8,
+        }
 
-        # plt.show()
-        plt.savefig(f"{tempfile.gettempdir()}/fig_keywords.svg")
+        nx.draw(relation_graph, pos, **draw_params)
+
+        # Draw the tag of every node
+        for node, (x, y) in pos.items():
+            plt.text(x, y, node, fontsize=10, fontweight="bold", ha="center", va="top", color="black")
+
+        # Add column names
+        column_names = ["Topic", "Action", "Dimension"]
+        for i, set_name in enumerate(column_names):
+            plt.text(
+                i,
+                max(pos.values(), key=lambda x: x[1])[1] + 4,
+                set_name,
+                fontsize=14,
+                fontweight="bold",
+                ha="center",
+                va="bottom",
+            )
+
+        plt.axis("off")
+        plt.show()
