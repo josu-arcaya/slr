@@ -3,7 +3,7 @@ import logging
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
-
+from sqlalchemy import text
 from core.database import Database
 from core.models import (
     Continent,
