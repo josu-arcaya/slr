@@ -1,5 +1,6 @@
 import logging
 import tempfile
+from collections import Counter
 
 import geopandas
 import matplotlib.colors as mcolors
@@ -25,21 +26,45 @@ class Plotter:
 
         return spacing_set
 
-    def plot_bar_type(self):
-        fig, ax = plt.subplots()
-        self.__df.groupby(["year", "sub_type"]).size().unstack().plot.bar(stacked=True, ax=ax)
-        #    stacked=True, ax=ax
-        # )
-        ax.set_axisbelow(True)
-        ax.grid(axis="y")
-        ax.legend(ncol=4, loc="upper center", bbox_to_anchor=(0.5, 1.12))
+    def count_clean_countries(self, country_list: list):
+        # Clean the list and count the ocurrencies of every country and ignore the empty ones
+        new_list = []
 
-        plt.xlabel("Publication year")
-        plt.ylabel("Number of articles")
-        plt.yticks(list(range(0, 25, 5)))
+        for i in range(len(country_list)):
+            if country_list[i] is not None:
+                new_list.append(country_list[i])
+
+        country_count = Counter(new_list)
+
+        # Order contries using frequency
+        sorted_countries = sorted(country_count.items(), key=lambda x: x[1], reverse=True)
+        countries = [item[0] for item in sorted_countries]
+        counts = [item[1] for item in sorted_countries]
+
+        return countries, counts, sorted_countries
+
+    def show_country_bar_diagram(self, country_list: list):
+        countries, counts, _ = self.count_clean_countries(country_list)
+
+        # Create the graph
+        plt.figure(figsize=(14, 8))
+        bars = plt.bar(countries, counts, color="skyblue")
+
+        # Tags of the bars
+        for bar in bars:
+            yval = bar.get_height()
+            aux = bar.get_x() + bar.get_width() / 2
+            plt.text(aux, yval + 0.1, str(int(yval)), ha="center", va="bottom", fontsize=10, fontweight="bold")
+
+        plt.ylabel("Number of Occurrences")
+        plt.xlabel("Countries")
+        plt.title("Country Occurrences")
+
+        plt.xticks(rotation=45, ha="right")
+        plt.grid(axis="y", linestyle="--", alpha=0.7)
+
         plt.tight_layout()
-        plt.savefig(f"{tempfile.gettempdir()}/fig_type.svg")
-        # plt.show()
+        plt.show()
 
     def plot_type(self):
         fig, ax = plt.subplots()

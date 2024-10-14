@@ -147,6 +147,14 @@ def main():
         required=False,
     )
 
+    parser.add_argument(
+        "-pbc",
+        "--plot_bar-country",
+        action="store_true",
+        help="Plot country diagram",
+        required=False,
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s")
@@ -161,6 +169,11 @@ def main():
 
     if args.scopus:
         query_scopus()
+
+    if args.plot_bar_country:
+        country_list = orm.get_documents_country()
+        p = Plotter()
+        p.show_country_bar_diagram(country_list=country_list)
 
     if args.fill_publisher:
         scop = Scopus(persistence=Persistence, search_query="None", date_range=conf.date_range)
