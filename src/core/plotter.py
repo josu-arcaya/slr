@@ -2,7 +2,6 @@ import logging
 import tempfile
 from collections import Counter
 
-import geopandas
 import geopandas as gpd
 import matplotlib.colors as mcolors
 import matplotlib.patheffects as path_effects
@@ -10,8 +9,9 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
+import pycountry_convert as pc
 from matplotlib.colors import LinearSegmentedColormap
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.patches import Circle
 from shapely.geometry import Point
 
 LOGGER = logging.getLogger("systematic")
@@ -215,22 +215,77 @@ class Plotter:
         plt.tight_layout()
         plt.savefig(f"{tempfile.gettempdir()}/fig_continent.pdf")
 
-    def plot_geo_continent(self):
-        fig, ax = plt.subplots(1, 1)
-        ax.set_xticks([])
-        ax.set_yticks([])
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="5%", pad=0.1)
-        # print(self.__df.groupby(["continent"]).size().head())
-        world = geopandas.read_file(geopandas.datasets.get_path("naturalearth_lowres")).dissolve(
-            by="continent", aggfunc="sum"
-        )
-        publications = [0, np.nan, 16, 39, 20, 2, 0, 0]
-        world["publications"] = publications
-        world.plot(column="publications", legend=True, ax=ax, cax=cax)
+    def get_continent(self, country_name):
+        country_alpha2 = pc.country_name_to_country_alpha2(country_name)
+        country_continent_code = pc.country_alpha2_to_continent_code(country_alpha2)
+        country_continent_name = pc.convert_continent_code_to_continent_name(country_continent_code)
+
+        return country_continent_name
+
+    def plot_geo_continent(self, documents_per_country: list):
+        # Count occurrences of each continent
+        continent_counts = {}
+        for country_name in documents_per_country:
+            if country_name:
+                continent = self.get_continent(country_name)
+                if continent:
+                    continent_counts[continent] = continent_counts.get(continent, 0) + 1
+
+        documents_per_continent = continent_counts
+
+        world = gpd.read_file("src/files/ne_110m_admin_0_countries.shp")
+
+        fig, ax = plt.subplots(figsize=(15, 10))
+
+        # Define a color map
+        cmap = plt.cm.Set3
+        continents = world["CONTINENT"].unique()
+        color_dict = dict(zip(continents, [cmap(i) for i in range(len(continents))], strict=False))
+
+        # Plot the continents
+        for continent, data in world.groupby("CONTINENT"):
+            color = color_dict[continent]
+            data.plot(ax=ax, color=color, label=continent)
+
+        # Define continent centroids (approximate)
+        centroids = {
+            "North America": (-100, 45),
+            "South America": (-60, -15),
+            "Europe": (15, 50),
+            "Africa": (20, 0),
+            "Asia": (80, 35),
+            "Oceania": (130, -25),
+            "Antarctica": (0, -90),
+        }
+
+        # Add custom numbers to each continent
+        for continent, (x, y) in centroids.items():
+            if continent in documents_per_continent:
+                number = documents_per_continent[continent]
+                ax.add_patch(Circle((x, y), 5, facecolor="white", edgecolor="black", zorder=2))
+                ax.text(x, y, str(number), ha="center", va="center", fontweight="bold", zorder=3)
+
+        ax.set_title("How much documents per continent", fontsize=16)
+        ax.axis("off")
+
+        # Create a custom legend
+        legend_element = [
+            plt.Rectangle(
+                (0, 0),
+                1,
+                1,
+                facecolor=color_dict[c],
+                edgecolor="none",
+                label=f"{c} ({documents_per_continent.get(c, 'N/A')})",
+            )
+            for c in continents
+        ]
+
+        ax.legend(handles=legend_element, loc="lower center", bbox_to_anchor=(0.5, -0.05), ncol=4)
+
         plt.tight_layout()
-        plt.savefig(f"{tempfile.gettempdir()}/fig_geo_continent.svg")
-        # plt.show()
+
+        plt.show()
 
     def plot_publisher(self):
         print(self.__df.groupby(["publisher"]).size().head(10))

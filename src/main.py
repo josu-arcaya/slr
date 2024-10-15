@@ -179,6 +179,14 @@ def main():
         required=False,
     )
 
+    parser.add_argument(
+        "-pco",
+        "--plot-continents",
+        action="store_true",
+        help="Plot how much documents are per continent",
+        required=False,
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s")
@@ -204,6 +212,11 @@ def main():
 
         p = Plotter()
         p.plot_type(document_types=document_types)
+
+    if args.plot_continents:
+        country_list = orm.get_documents_country()
+        p = Plotter()
+        p.plot_geo_continent(documents_per_country=country_list)
 
     if args.fill_publisher:
         scop = Scopus(persistence=Persistence, search_query="None", date_range=conf.date_range)
