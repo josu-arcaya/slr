@@ -299,6 +299,19 @@ class SqlAlchemyORM:
             result = sess.query(Document.id_document, Document.abstract).all()
             return [(row[0], row[1]) for row in result]
 
+    def get_documents_type(self):
+        with self.db.get_session() as sess:
+            result = (
+                sess.query(
+                    Document.sub_type,  # El tipo de documento
+                    func.count().label("cantidad"),  # Contar el número de documentos por tipo
+                )
+                .group_by(Document.sub_type)  # Agrupar por el tipo de documento
+                .all()  # Ejecutamos la consulta y obtenemos todos los resultados
+            )
+
+        return result
+
     def get_documents_year(self):
         with self.db.get_session() as sess:
             result = (

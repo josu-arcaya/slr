@@ -171,6 +171,14 @@ def main():
         required=False,
     )
 
+    parser.add_argument(
+        "-pt",
+        "--plot-types",
+        action="store_true",
+        help="Plot documents types",
+        required=False,
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s")
@@ -190,6 +198,12 @@ def main():
         country_list = orm.get_documents_country()
         p = Plotter()
         p.show_country_bar_diagram(country_list=country_list)
+
+    if args.plot_types:
+        document_types = orm.get_documents_type()
+
+        p = Plotter()
+        p.plot_type(document_types=document_types)
 
     if args.fill_publisher:
         scop = Scopus(persistence=Persistence, search_query="None", date_range=conf.date_range)

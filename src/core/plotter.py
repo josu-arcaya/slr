@@ -48,6 +48,29 @@ class Plotter:
 
         return countries, counts, sorted_countries
 
+    def plot_type(self, document_types: list):
+        labels, sizes = zip(*document_types, strict=True)
+
+        fig, ax = plt.subplots()
+
+        colors = plt.cm.summer(np.linspace(0, 1, len(document_types)))
+
+        # pie chart
+        wedges, texts, autotexts = ax.pie(
+            sizes, labels=labels, autopct="%1.1f%%", colors=colors, startangle=90, pctdistance=0.5, labeldistance=0.7
+        )
+
+        # Adjust text position
+        for autotext in autotexts:
+            autotext.set(size=10, color="white", weight="bold")
+
+        # To form an sphere and not a ellipse
+        ax.axis("equal")
+
+        ax.set_title("Distribution of Publication Types")
+        plt.tight_layout()
+        plt.show()
+
     def show_country_bar_diagram(self, country_list: list):
         countries, counts, _ = self.count_clean_countries(country_list)
 
@@ -181,27 +204,6 @@ class Plotter:
 
         plt.tight_layout()
         plt.show()
-
-    def plot_type(self):
-        fig, ax = plt.subplots()
-        # self.__df.groupby(["year", "sub_type"]).size().unstack().plot.bar(
-        #    stacked=True, ax=ax
-        # )
-        # self.__df.groupby(["sub_type"]).size().plot.bar(ax=ax)
-        self.__df.groupby(["sub_type"]).size().plot.pie(ax=ax, cmap="summer", legend=True)
-        #    stacked=True, ax=ax
-        # )
-        ax.set_axisbelow(True)
-        ax.grid(axis="y")
-        # ax.legend(ncol=4, loc="upper center", bbox_to_anchor=(0.5, 1.12))
-        # ax.legend(ncol=4, loc="upper center", bbox_to_anchor=(0.5, 1.12))
-
-        # plt.xlabel("Publication year")
-        # plt.ylabel("Number of articles")
-        # plt.yticks(list(range(0, 25, 5)))
-        plt.tight_layout()
-        plt.savefig(f"{tempfile.gettempdir()}/fig_type.svg")
-        # plt.show()
 
     def plot_continent(self):
         self.__df.groupby(["continent"]).size().plot.pie(
