@@ -123,6 +123,9 @@ class Plotter:
 
         # Create frequency map
         frequency_map = {country.upper(): count for country, count in zip(countries, counts, strict=False)}
+        if "UNITED STATES" in frequency_map:
+            frequency_map["UNITED STATES OF AMERICA"] = frequency_map["UNITED STATES"]
+
         world["frequency"] = world["SOVEREIGNT"].map(frequency_map).fillna(0)
 
         fig, ax = plt.subplots(1, 1, figsize=(20, 15), facecolor="#F0F0F0")
@@ -161,8 +164,20 @@ class Plotter:
                 centroid = row["geometry"].centroid
                 if row["SOVEREIGNT"] == "FRANCE":
                     centroid = Point(1.5, 47)
-                if row["SOVEREIGNT"] == "UNITED KINGDOM":
+                elif row["SOVEREIGNT"] == "UNITED KINGDOM":
                     centroid = Point(-1, 53)
+                elif row["SOVEREIGNT"] == "UNITED STATES OF AMERICA":
+                    centroid = Point(-100, 40)
+                elif row["SOVEREIGNT"] == "CANADA":
+                    centroid = Point(-110, 60)
+                elif row["SOVEREIGNT"] == "NORWAY":
+                    centroid = Point(9, 61)
+                elif row["SOVEREIGNT"] == "MALAYSIA":
+                    centroid = Point(102, 4)
+                elif row["SOVEREIGNT"] == "INDONESIA":
+                    centroid = Point(113, -1)
+                elif row["SOVEREIGNT"] == "MOROCCO":
+                    centroid = Point(-6, 32)
 
                 text = ax.text(
                     centroid.x,
